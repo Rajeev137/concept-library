@@ -20,7 +20,7 @@ out/
 next-env.d.ts
 
 # testing
-tests/
+coverage/
 
 # OS
 .DS_Store
