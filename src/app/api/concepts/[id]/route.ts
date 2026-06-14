@@ -7,38 +7,42 @@ import { conceptInputSchema } from "@/lib/validators/concept";
 
 type Params = { params: Promise<{ id: string }> };
 
-// GET /api/concepts/:id
-// Auth required. Returns the concept with comparisons, scoped to session user.
-// 404 if not found or belongs to another user (never 403 — existence leak prevention).
 export const GET = apiHandler(async (request: NextRequest, { params }: Params) => {
-  // TODO: const session = await getSession(); requireUser(session)
-  // TODO: const { id } = await params
-  // TODO: const concept = await getConcept(session, id)
-  // TODO: if (!concept) throw new ApiRouteError("NOT_FOUND", "Not found", 404)
-  // TODO: return NextResponse.json({ ok: true, data: concept })
-  return NextResponse.json({ ok: true, data: null });
+  const session = await getSession();
+  requireUser(session);
+
+  const { id } = await params;
+  const concept = await getConcept(session, id);
+  if (!concept) throw new ApiRouteError("NOT_FOUND", "Concept not found", 404);
+
+  return NextResponse.json<ApiResult<Concept>>({ ok: true, data: concept });
 });
 
-// PUT /api/concepts/:id
-// Auth required. Body: ConceptInput
-// Full replace of mutable fields. Replaces comparisons array entirely.
-// 404 if not found for this user. 409 on title conflict within same topic.
 export const PUT = apiHandler(async (request: NextRequest, { params }: Params) => {
-  // TODO: const session = await getSession(); requireUser(session)
-  // TODO: const { id } = await params
-  // TODO: parse and validate body with conceptInputSchema; throw 422 on failure
-  // TODO: const concept = await updateConcept(session, id, body)
-  // TODO: return NextResponse.json({ ok: true, data: concept })
-  return NextResponse.json({ ok: true, data: null });
+  const session = await getSession();
+  requireUser(session);
+
+  const { id } = await params;
+  const body = await request.json().catch(() => null);
+  const parsed = conceptInputSchema.safeParse(body);
+  if (!parsed.success) {
+    throw new ApiRouteError(
+      "VALIDATION",
+      "Validation failed",
+      422,
+      parsed.error.issues.map((i) => ({ field: i.path.join("."), message: i.message }))
+    );
+  }
+
+  const concept = await updateConcept(session, id, parsed.data);
+  return NextResponse.json<ApiResult<Concept>>({ ok: true, data: concept });
 });
 
-// DELETE /api/concepts/:id
-// Auth required. Deletes concept and its comparisons (via DB cascade or manual).
-// 404 if not found for this user.
 export const DELETE = apiHandler(async (request: NextRequest, { params }: Params) => {
-  // TODO: const session = await getSession(); requireUser(session)
-  // TODO: const { id } = await params
-  // TODO: const result = await removeConcept(session, id)
-  // TODO: return NextResponse.json({ ok: true, data: result })
-  return NextResponse.json({ ok: true, data: { ok: true } });
+  const session = await getSession();
+  requireUser(session);
+
+  const { id } = await params;
+  const result = await removeConcept(session, id);
+  return NextResponse.json<ApiResult<{ ok: true }>>({ ok: true, data: result });
 });
