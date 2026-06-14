@@ -16,7 +16,7 @@ Legend: `[ ]` todo · `[x]` done · `[~]` current phase
 - [x] **`src/types/index.ts`** — re-export everything from `interfaces.ts`; no new types
 - [x] **`tests/unit/supabase.test.ts`** — unit tests for all three Supabase clients (browser, server, middleware); mocks env vars and cookie store
 - [ ] **`tests/anon-key-isolation.test.ts`** — implement: connect with anon key, assert `topics`, `concepts`, `comparisons` return 0 rows and `concept-images` bucket returns 0 objects; this test must always pass *(file scaffolded, needs real Supabase creds to run)*
-- [ ] **Supabase project** (manual, out-of-band) — create project, apply SQL for `topics`/`concepts`/`comparisons` tables with RLS policies, create `concept-images` bucket with Storage RLS, copy keys to `.env.local`
+- [x] **Supabase project** (manual, out-of-band) — create project, apply SQL for `topics`/`concepts`/`comparisons` tables with RLS policies, create `concept-images` bucket with Storage RLS, copy keys to `.env.local`
 - [ ] **Vercel project** (manual, out-of-band) — connect GitHub repo, add env vars (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`), confirm deploy green
 
 ---
