@@ -18,6 +18,8 @@ export async function middleware(request: NextRequest) {
   const supabase = createMiddlewareClient(request, response);
   await supabase.auth.getUser();
 
+  response.headers.set("x-pathname", request.nextUrl.pathname);
+
   if (
     WRITE_METHODS.has(request.method) &&
     request.nextUrl.pathname.startsWith("/api/")
