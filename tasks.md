@@ -7,16 +7,17 @@ Legend: `[ ]` todo · `[x]` done · `[~]` current phase
 ## Phase 0 — Repo, deploy, Supabase project, RLS test in CI
 > Goal: a live Vercel URL that returns a hello page, with CI enforcing the anon-key isolation invariant.
 
-- [~] **`.github/workflows/ci.yml`** — wire up typecheck (`tsc --noEmit`), lint (`eslint .`), test (`npm test`), and a `grep` job that fails if `SUPABASE_SERVICE_ROLE_KEY` appears outside `src/app/api/` or `src/lib/`
-- [~] **`src/app/layout.tsx`** — root layout: set `<html lang="en">`, import `globals.css`, no auth logic yet
-- [~] **`src/app/(app)/page.tsx`** — placeholder hello page ("Concept Library — coming soon") so Vercel deploy succeeds
-- [~] **`src/lib/supabase/client.ts`** — browser Supabase client using `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_ANON_KEY` via `createBrowserClient` from `@supabase/ssr`
-- [~] **`src/lib/supabase/server.ts`** — server Supabase client (service-role) using `createServerClient` from `@supabase/ssr`; reads cookies from Next.js headers
-- [~] **`src/lib/supabase/middleware.ts`** — middleware Supabase client (anon key only) for session cookie refresh
-- [~] **`src/types/index.ts`** — re-export everything from `interfaces.ts`; no new types
-- [~] **`tests/anon-key-isolation.test.ts`** — implement: connect with anon key, assert `topics`, `concepts`, `comparisons` return 0 rows and `concept-images` bucket returns 0 objects; this test must always pass
-- [~] **Supabase project** (manual, out-of-band) — create project, apply SQL for `topics`/`concepts`/`comparisons` tables with RLS policies, create `concept-images` bucket with Storage RLS, copy keys to `.env.local`
-- [~] **Vercel project** (manual, out-of-band) — connect GitHub repo, add env vars (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`), confirm deploy green
+- [x] **`.github/workflows/ci.yml`** — wire up typecheck (`tsc --noEmit`), lint (`eslint .`), test (`npm test`), and a `grep` job that fails if `SUPABASE_SERVICE_ROLE_KEY` appears outside `src/app/api/` or `src/lib/`
+- [x] **`src/app/layout.tsx`** — root layout: set `<html lang="en">`, import `globals.css`, no auth logic yet
+- [x] **`src/app/(app)/page.tsx`** — placeholder hello page ("Concept Library — coming soon") so Vercel deploy succeeds
+- [x] **`src/lib/supabase/client.ts`** — browser Supabase client using `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_ANON_KEY` via `createBrowserClient` from `@supabase/ssr`
+- [x] **`src/lib/supabase/server.ts`** — server Supabase client (service-role) using `createServerClient` from `@supabase/ssr`; reads cookies from Next.js headers
+- [x] **`src/lib/supabase/middleware.ts`** — middleware Supabase client (anon key only) for session cookie refresh
+- [x] **`src/types/index.ts`** — re-export everything from `interfaces.ts`; no new types
+- [x] **`tests/unit/supabase.test.ts`** — unit tests for all three Supabase clients (browser, server, middleware); mocks env vars and cookie store
+- [ ] **`tests/anon-key-isolation.test.ts`** — implement: connect with anon key, assert `topics`, `concepts`, `comparisons` return 0 rows and `concept-images` bucket returns 0 objects; this test must always pass *(file scaffolded, needs real Supabase creds to run)*
+- [ ] **Supabase project** (manual, out-of-band) — create project, apply SQL for `topics`/`concepts`/`comparisons` tables with RLS policies, create `concept-images` bucket with Storage RLS, copy keys to `.env.local`
+- [ ] **Vercel project** (manual, out-of-band) — connect GitHub repo, add env vars (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`), confirm deploy green
 
 ---
 
