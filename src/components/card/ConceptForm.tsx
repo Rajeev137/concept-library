@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { useSearchParams } from "next/navigation";
 import type {
   Concept,
   ConceptInput,
@@ -14,9 +13,10 @@ import type {
 } from "@/types";
 import { useDraftConcept } from "@/hooks/useDraftConcept";
 import { validateConcept } from "@/lib/validators/concept";
+import TagInput from "@/components/ui/TagInput";
 
 interface ConceptFormProps {
-  initial?: Concept;
+  concept?: Concept;
   defaultTopicId?: UUID;
   onSuccess: (concept: Concept) => void;
   onCancel: () => void;
@@ -30,7 +30,7 @@ interface FormState {
   when_it_breaks: string;
   explain_in_30s: string;
   where_i_used_it: string;
-  tags: string;
+  tags: string[];
 }
 
 const EMPTY_COMPARISON: ComparisonInput = { alternative: "", difference: "", position: 0 };
@@ -43,21 +43,21 @@ function toComparisonInputs(concept: Concept): ComparisonInput[] {
     .map(({ alternative, difference, position }) => ({ alternative, difference, position }));
 }
 
-export default function ConceptForm({ initial, defaultTopicId, onSuccess, onCancel }: ConceptFormProps) {
+export default function ConceptForm({ concept, defaultTopicId, onSuccess, onCancel }: ConceptFormProps) {
   const draftKey: UUID | "new" = defaultTopicId ?? "new";
   const { draft, save: saveDraft, clear: clearDraft } = useDraftConcept(draftKey);
 
   const [form, setForm] = useState<FormState>(() => {
-    if (initial) {
+    if (concept) {
       return {
-        topic_id: initial.topic_id,
+        topic_id: concept.topic_id,
         topic_name_new: "",
-        title: initial.title,
-        what_it_does: initial.what_it_does,
-        when_it_breaks: initial.when_it_breaks,
-        explain_in_30s: initial.explain_in_30s,
-        where_i_used_it: initial.where_i_used_it,
-        tags: initial.tags.join(", "),
+        title: concept.title,
+        what_it_does: concept.what_it_does,
+        when_it_breaks: concept.when_it_breaks,
+        explain_in_30s: concept.explain_in_30s,
+        where_i_used_it: concept.where_i_used_it,
+        tags: concept.tags,
       };
     }
     if (draft?.partial) {
@@ -70,7 +70,7 @@ export default function ConceptForm({ initial, defaultTopicId, onSuccess, onCanc
         when_it_breaks: p.when_it_breaks ?? "",
         explain_in_30s: p.explain_in_30s ?? "",
         where_i_used_it: p.where_i_used_it ?? "",
-        tags: (p.tags ?? []).join(", "),
+        tags: p.tags ?? [],
       };
     }
     return {
@@ -81,18 +81,18 @@ export default function ConceptForm({ initial, defaultTopicId, onSuccess, onCanc
       when_it_breaks: "",
       explain_in_30s: "",
       where_i_used_it: "",
-      tags: "",
+      tags: [],
     };
   });
 
   const [comparisons, setComparisons] = useState<ComparisonInput[]>(() => {
-    if (initial) return toComparisonInputs(initial);
+    if (concept) return toComparisonInputs(concept);
     if (draft?.partial?.comparisons?.length) return draft.partial.comparisons;
     return [{ ...EMPTY_COMPARISON }];
   });
 
   const [image, setImage] = useState<ConceptImage | null>(() => {
-    if (initial) return initial.image;
+    if (concept) return concept.image;
     return draft?.partial?.image ?? null;
   });
 
@@ -105,7 +105,7 @@ export default function ConceptForm({ initial, defaultTopicId, onSuccess, onCanc
   const [topicQuery, setTopicQuery] = useState("");
   const [topicDropdownOpen, setTopicDropdownOpen] = useState(false);
   const [selectedTopicLabel, setSelectedTopicLabel] = useState<string>(() => {
-    if (initial) return "";
+    if (concept) return "";
     if (draft?.topic_name_new) return draft.topic_name_new;
     return "";
   });
@@ -153,10 +153,6 @@ export default function ConceptForm({ initial, defaultTopicId, onSuccess, onCanc
   const scheduleDraftSave = useCallback(() => {
     if (draftTimerRef.current) clearTimeout(draftTimerRef.current);
     draftTimerRef.current = setTimeout(() => {
-      const tags = form.tags
-        .split(",")
-        .map((t) => t.trim())
-        .filter(Boolean);
       const next: DraftConcept = {
         topic_id: form.topic_id,
         topic_name_new: form.topic_name_new || undefined,
@@ -167,7 +163,7 @@ export default function ConceptForm({ initial, defaultTopicId, onSuccess, onCanc
           when_it_breaks: form.when_it_breaks,
           explain_in_30s: form.explain_in_30s,
           where_i_used_it: form.where_i_used_it,
-          tags,
+          tags: form.tags,
           image,
         },
         updated_at: new Date().toISOString(),
@@ -177,7 +173,7 @@ export default function ConceptForm({ initial, defaultTopicId, onSuccess, onCanc
   }, [form, comparisons, image, saveDraft]);
 
   useEffect(() => {
-    if (!initial) scheduleDraftSave();
+    if (!concept) scheduleDraftSave();
     return () => {
       if (draftTimerRef.current) clearTimeout(draftTimerRef.current);
     };
@@ -257,7 +253,7 @@ export default function ConceptForm({ initial, defaultTopicId, onSuccess, onCanc
     setUploadError(null);
     const body = new FormData();
     body.append("file", file);
-    body.append("concept_id", initial?.id ?? "draft");
+    body.append("concept_id", concept?.id ?? "draft");
     try {
       const res = await fetch("/api/uploads/concept-image", { method: "POST", body });
       const data = (await res.json()) as ApiResult<{ url: string; path: string }>;
@@ -296,11 +292,6 @@ export default function ConceptForm({ initial, defaultTopicId, onSuccess, onCanc
     e.preventDefault();
     setSubmitError(null);
 
-    const tags = form.tags
-      .split(",")
-      .map((t) => t.trim())
-      .filter(Boolean);
-
     const input: ConceptInput = {
       topic_id: form.topic_id,
       topic_name_new: form.topic_name_new || undefined,
@@ -310,7 +301,7 @@ export default function ConceptForm({ initial, defaultTopicId, onSuccess, onCanc
       when_it_breaks: form.when_it_breaks,
       explain_in_30s: form.explain_in_30s,
       where_i_used_it: form.where_i_used_it,
-      tags,
+      tags: form.tags,
       image,
     };
 
@@ -324,8 +315,8 @@ export default function ConceptForm({ initial, defaultTopicId, onSuccess, onCanc
 
     setSubmitting(true);
     try {
-      const url = initial ? `/api/concepts/${initial.id}` : "/api/concepts";
-      const method = initial ? "PUT" : "POST";
+      const url = concept ? `/api/concepts/${concept.id}` : "/api/concepts";
+      const method = concept ? "PUT" : "POST";
       const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
@@ -364,7 +355,7 @@ export default function ConceptForm({ initial, defaultTopicId, onSuccess, onCanc
   return (
     <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-5 max-w-2xl w-full mx-auto px-1">
       <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-        {initial ? "Edit concept" : "Add concept"}
+        {concept ? "Edit Concept" : "New Concept"}
       </h2>
 
       {/* Topic combobox */}
@@ -622,16 +613,13 @@ export default function ConceptForm({ initial, defaultTopicId, onSuccess, onCanc
 
       {/* Tags */}
       <div className="flex flex-col gap-1">
-        <label htmlFor="tags" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
           Tags
         </label>
-        <input
-          id="tags"
-          type="text"
+        <TagInput
           value={form.tags}
-          onChange={(e) => setForm((f) => ({ ...f, tags: e.target.value }))}
-          className={fieldClass("tags")}
-          placeholder="react, hooks, performance (comma-separated)"
+          onChange={(tags) => setForm((f) => ({ ...f, tags }))}
+          placeholder="Add a tag…"
         />
       </div>
 
@@ -733,7 +721,7 @@ export default function ConceptForm({ initial, defaultTopicId, onSuccess, onCanc
           disabled={submitting}
           className="px-4 py-2 text-sm font-medium rounded-md bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 hover:bg-gray-700 dark:hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
-          {submitting ? "Saving…" : initial ? "Save changes" : "Add concept"}
+          {submitting ? "Saving…" : concept ? "Save changes" : "Add concept"}
         </button>
       </div>
     </form>
