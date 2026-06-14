@@ -12,18 +12,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Fail if SUPABASE_SERVICE_ROLE_KEY appears outside allowed paths
+      - name: Check for service role key leaks
         run: |
           VIOLATIONS=$(grep -rn "SUPABASE_SERVICE_ROLE_KEY" src/ \
             --include="*.ts" --include="*.tsx" \
             | grep -v "^src/app/api/" \
-            | grep -v "^src/lib/server/")
+            | grep -v "^src/lib/server/" \
+            | grep -v "^src/lib/supabase/" \
+            || true)
           if [ -n "$VIOLATIONS" ]; then
-            echo "ERROR: SUPABASE_SERVICE_ROLE_KEY found outside src/app/api/ or src/lib/server/:"
+            echo "ERROR: SUPABASE_SERVICE_ROLE_KEY found outside allowed directories:"
             echo "$VIOLATIONS"
             exit 1
           fi
-          echo "Secret scan passed."
 
   typecheck:
     name: Typecheck

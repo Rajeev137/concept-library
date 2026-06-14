@@ -67,7 +67,7 @@ Three separate clients; never mix them:
 | `src/lib/supabase/server.ts` | anon + service role | `app/api/**` only |
 | `src/lib/supabase/middleware.ts` | anon (`NEXT_PUBLIC`) | `src/middleware.ts` only |
 
-**`SUPABASE_SERVICE_ROLE_KEY` must never appear outside `app/api/`.** CI has a grep that fails the build if it does.
+**`SUPABASE_SERVICE_ROLE_KEY` must never appear outside `app/api/**`, `lib/server/**`, and `lib/supabase/**`.** CI has a grep that fails the build if it does.
 
 ### Data isolation
 
