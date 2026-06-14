@@ -2,28 +2,48 @@ import { NextRequest, NextResponse } from "next/server";
 import type { ApiResult, Topic } from "@/types";
 import { apiHandler, ApiRouteError } from "@/lib/errors";
 import { getSession, requireUser } from "@/lib/supabase/server";
-import { listTopics, createTopic } from "@/lib/repos/topics";
+import { listTopics, createTopic, findTopicByName } from "@/lib/repos/topics";
 import { topicInputSchema } from "@/lib/validators/topic";
 
-// GET /api/topics
-// Auth required. Returns Topic[] for the session user, ordered by name ASC.
-// Used to populate the sidebar topic list with concept counts.
 export const GET = apiHandler(async (_request: NextRequest) => {
-  // TODO: const session = await getSession(); requireUser(session)
-  // TODO: const topics = await listTopics(session)
-  // TODO: return NextResponse.json({ ok: true, data: topics })
-  return NextResponse.json({ ok: true, data: [] });
+  const session = await getSession();
+  requireUser(session);
+  const topics = await listTopics(session);
+  return NextResponse.json<ApiResult<Topic[]>>({ ok: true, data: topics });
 });
 
-// POST /api/topics
-// Auth required. Body: TopicInput
-// Creates a new topic for the session user.
-// 409 if a topic with the same name (case-insensitive) already exists — return existing topic.
-// Validates input via topicInputSchema.
-export const POST = apiHandler(async (request: NextRequest) => {
-  // TODO: const session = await getSession(); requireUser(session)
-  // TODO: parse and validate body with topicInputSchema; throw 422 on failure
-  // TODO: const topic = await createTopic(session, body)  — throws 409 with existing topic on duplicate
-  // TODO: return NextResponse.json({ ok: true, data: topic }, { status: 201 })
-  return NextResponse.json({ ok: true, data: null }, { status: 201 });
-});
+type TopicConflictResponse = {
+  ok: false;
+  error: { code: "CONFLICT"; message: string };
+  data: Topic;
+};
+
+export const POST = apiHandler(
+  async (request: NextRequest): Promise<NextResponse<ApiResult<Topic> | TopicConflictResponse>> => {
+    const session = await getSession();
+    requireUser(session);
+
+    const body = await request.json().catch(() => null);
+    const parsed = topicInputSchema.safeParse(body);
+    if (!parsed.success) {
+      throw new ApiRouteError(
+        "VALIDATION",
+        "Validation failed",
+        422,
+        parsed.error.issues.map((i) => ({ field: i.path.join("."), message: i.message }))
+      );
+    }
+
+    const existing = await findTopicByName(session, parsed.data.name);
+    if (existing) {
+      // 409: return existing topic so the client can select it instead of creating a duplicate.
+      return NextResponse.json<TopicConflictResponse>(
+        { ok: false, error: { code: "CONFLICT", message: `Topic "${existing.name}" already exists` }, data: existing },
+        { status: 409 }
+      );
+    }
+
+    const topic = await createTopic(session, parsed.data);
+    return NextResponse.json<ApiResult<Topic>>({ ok: true, data: topic }, { status: 201 });
+  }
+);
