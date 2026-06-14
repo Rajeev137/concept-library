@@ -10,7 +10,7 @@ vi.mock("next/headers", () => ({
 
 function makeQueryChain(result: unknown) {
   const terminal = vi.fn().mockResolvedValue(result);
-  const chain: Record<string, unknown> & PromiseLike<unknown> = {
+  const chain = {
     select: vi.fn().mockReturnThis(),
     eq: vi.fn().mockReturnThis(),
     order: vi.fn().mockReturnThis(),
@@ -19,11 +19,10 @@ function makeQueryChain(result: unknown) {
     delete: vi.fn().mockReturnThis(),
     single: terminal,
     maybeSingle: terminal,
-    then: (
-      resolve?: ((v: unknown) => unknown) | null,
-      reject?: ((e: unknown) => unknown) | null
-    ) => Promise.resolve(result).then(resolve, reject ?? undefined),
-  };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    then: (resolve?: ((v: unknown) => unknown) | null, reject?: ((e: unknown) => unknown) | null) =>
+      Promise.resolve(result).then(resolve as any, reject ?? undefined),
+  } as unknown as Record<string, unknown> & PromiseLike<unknown>;
   return chain;
 }
 
