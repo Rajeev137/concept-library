@@ -49,30 +49,30 @@ Legend: `[ ]` todo · `[x]` done · `[~]` current phase
 ## Phase 2 — Schema, create-concept form, POST endpoint
 > Goal: deployable. You can add one concept card (with a new or existing topic).
 
-- [ ] **`src/lib/validators/topic.ts`** — implement Zod schema (`.strict()`) for `TopicInput`; name non-empty, trimmed, max 80 chars
-- [ ] **`src/lib/validators/concept.ts`** — implement Zod schema (`.strict()`) for `ConceptInput`; all `REQUIRED_STRINGS` non-empty; comparisons array min 1 entry; each comparison `alternative`+`difference` non-empty; `topic_id` or `topic_name_new` required; `user_id` must NOT be present (`.strict()` rejects it)
-- [ ] **`src/lib/repos/topics.ts`** — implement `TopicRepo`: `list`, `get`, `findByName`, `create`, `rename`, `remove` (409 if concepts exist), `listConcepts`; every query filters by `session.user_id`
-- [ ] **`src/lib/repos/concepts.ts`** — implement `ConceptRepo`: `list` (with optional `q`/`tag`/`topic_id` filters), `get`, `create`, `update`, `remove`; every query filters by `session.user_id`; `create` handles `topic_name_new` — calls `topics.findByName` first (409 if duplicate name), else creates topic then concept
-- [ ] **`src/app/api/topics/route.ts`** — GET: `requireUser`, call `topicRepo.list()`; POST: validate `TopicInput`, call `topicRepo.create()`, 409 on duplicate name returning existing topic
-- [ ] **`src/app/api/topics/[id]/route.ts`** — PUT: validate `TopicInput`, call `topicRepo.rename()`; DELETE: call `topicRepo.remove()`, 409 if non-empty with concept count
-- [ ] **`src/app/api/topics/[id]/concepts/route.ts`** — GET: `requireUser`, call `topicRepo.listConcepts()`
-- [ ] **`src/app/api/concepts/route.ts`** — GET: `requireUser`, call `conceptRepo.list()`; POST: validate `ConceptInput`, call `conceptRepo.create()`, 409 on duplicate title under same topic
-- [ ] **`src/lib/upload/index.ts`** — implement `uploadConceptImage()` and `deleteConceptImage()`; validate MIME against `IMAGE_POLICY.ALLOWED_MIME` AND sniff magic bytes; sanitize filename (strip path separators, NFC normalize, truncate to 80 chars); storage path `{user_id}/{concept_id}/{filename}`
-- [ ] **`src/app/api/uploads/concept-image/route.ts`** — POST: `requireUser`, parse multipart, call `uploadConceptImage()`; return `{ url, path }`; 415 on bad MIME; DELETE: validate `{ path }`, verify path starts with `session.user_id`, call `deleteConceptImage()`
-- [ ] **`src/components/layout/ThemeProvider.tsx`** — implement: read `ui:theme` from localStorage on mount, apply `dark` class to `<html>`, listen to `prefers-color-scheme` when value is `system`
-- [ ] **`src/hooks/useLocalStorage.ts`** — implement generic `useLocalStorage<T>(key, defaultValue)` hook with SSR-safe read
-- [ ] **`src/components/layout/AppShell.tsx`** — implement layout: sidebar on left, main panel on right; pass sidebar collapsed state down; render `<OfflineBanner />` at top
-- [ ] **`src/components/sidebar/Sidebar.tsx`** — implement: topic list from `GET /api/topics`, search box filtering titles, collapse/expand per topic (persisted via `ui:expanded-topics`), collapse-to-rail toggle (persisted via `ui:sidebar`), theme toggle at footer
-- [ ] **`src/components/sidebar/TopicRow.tsx`** — implement: topic name + concept count chip; expand/collapse to show concept titles; click concept title triggers URL update
-- [ ] **`src/components/ui/ThemeToggle.tsx`** — implement: cycle light→dark→system, write to `ui:theme`
-- [ ] **`src/components/ui/OfflineBanner.tsx`** — implement: listen to `window.online/offline`, show banner when offline; hide when online
-- [ ] **`src/components/card/ConceptForm.tsx`** — implement full form: all `ConceptInput` fields, repeatable comparisons section (add/remove/reorder rows), topic combobox (search existing or type new name), optional image section (drag-drop + thumbnail preview), auto-save draft every 1s to `draft:concept:{topic_id|new}`, clear on submit, submit calls `POST /api/concepts`
-- [ ] **`src/components/card/AddCardButton.tsx`** — implement: floating action button fixed bottom-left, opens `ConceptForm`
-- [ ] **`src/hooks/useDraftConcept.ts`** — implement: read/write `DraftConcept` from localStorage key `draft:concept:{topic_id|"new"}` debounced at 1s; expose `{ draft, save, clear }`
-- [ ] **`tests/unit/validators-concept.test.ts`** — tests matching contract error boundaries: empty required string rejected, whitespace-only rejected, "N.A." accepted, comparisons min-1 enforced, `user_id` in body rejected by `.strict()`
-- [ ] **`tests/unit/validators-topic.test.ts`** — tests: name required, max 80 chars, whitespace trimmed
-- [ ] **`tests/unit/repos-topics.test.ts`** — unit tests for `TopicRepo`: 409 on duplicate name, 409 on delete with concepts, `user_id` scoping
-- [ ] **`tests/unit/repos-concepts.test.ts`** — unit tests for `ConceptRepo`: 409 on duplicate title+topic, `user_id` always scoped, auto-creates topic from `topic_name_new`
+- [x] **`src/lib/validators/topic.ts`** — implement Zod schema (`.strict()`) for `TopicInput`; name non-empty, trimmed, max 80 chars
+- [x] **`src/lib/validators/concept.ts`** — implement Zod schema (`.strict()`) for `ConceptInput`; all `REQUIRED_STRINGS` non-empty; comparisons array min 1 entry; each comparison `alternative`+`difference` non-empty; `topic_id` or `topic_name_new` required; `user_id` must NOT be present (`.strict()` rejects it)
+- [x] **`src/lib/repos/topics.ts`** — implement `TopicRepo`: `list`, `get`, `findByName`, `create`, `rename`, `remove` (409 if concepts exist), `listConcepts`; every query filters by `session.user_id`
+- [x] **`src/lib/repos/concepts.ts`** — implement `ConceptRepo`: `list` (with optional `q`/`tag`/`topic_id` filters), `get`, `create`, `update`, `remove`; every query filters by `session.user_id`; `create` handles `topic_name_new` — calls `topics.findByName` first (409 if duplicate name), else creates topic then concept
+- [x] **`src/app/api/topics/route.ts`** — GET: `requireUser`, call `topicRepo.list()`; POST: validate `TopicInput`, call `topicRepo.create()`, 409 on duplicate name returning existing topic
+- [x] **`src/app/api/topics/[id]/route.ts`** — PUT: validate `TopicInput`, call `topicRepo.rename()`; DELETE: call `topicRepo.remove()`, 409 if non-empty with concept count
+- [x] **`src/app/api/topics/[id]/concepts/route.ts`** — GET: `requireUser`, call `topicRepo.listConcepts()`
+- [x] **`src/app/api/concepts/route.ts`** — GET: `requireUser`, call `conceptRepo.list()`; POST: validate `ConceptInput`, call `conceptRepo.create()`, 409 on duplicate title under same topic
+- [x] **`src/lib/upload/index.ts`** — implement `uploadConceptImage()` and `deleteConceptImage()`; validate MIME against `IMAGE_POLICY.ALLOWED_MIME` AND sniff magic bytes; sanitize filename (strip path separators, NFC normalize, truncate to 80 chars); storage path `{user_id}/{concept_id}/{filename}`
+- [x] **`src/app/api/uploads/concept-image/route.ts`** — POST: `requireUser`, parse multipart, call `uploadConceptImage()`; return `{ url, path }`; 415 on bad MIME; DELETE: validate `{ path }`, verify path starts with `session.user_id`, call `deleteConceptImage()`
+- [x] **`src/components/layout/ThemeProvider.tsx`** — implement: read `ui:theme` from localStorage on mount, apply `dark` class to `<html>`, listen to `prefers-color-scheme` when value is `system`
+- [x] **`src/hooks/useLocalStorage.ts`** — implement generic `useLocalStorage<T>(key, defaultValue)` hook with SSR-safe read
+- [x] **`src/components/layout/AppShell.tsx`** — implement layout: sidebar on left, main panel on right; pass sidebar collapsed state down; render `<OfflineBanner />` at top
+- [x] **`src/components/sidebar/Sidebar.tsx`** — implement: topic list from `GET /api/topics`, search box filtering titles, collapse/expand per topic (persisted via `ui:expanded-topics`), collapse-to-rail toggle (persisted via `ui:sidebar`), theme toggle at footer
+- [x] **`src/components/sidebar/TopicRow.tsx`** — implement: topic name + concept count chip; expand/collapse to show concept titles; click concept title triggers URL update
+- [x] **`src/components/ui/ThemeToggle.tsx`** — implement: cycle light→dark→system, write to `ui:theme`
+- [x] **`src/components/ui/OfflineBanner.tsx`** — implement: listen to `window.online/offline`, show banner when offline; hide when online
+- [x] **`src/components/card/ConceptForm.tsx`** — implement full form: all `ConceptInput` fields, repeatable comparisons section (add/remove/reorder rows), topic combobox (search existing or type new name), optional image section (drag-drop + thumbnail preview), auto-save draft every 1s to `draft:concept:{topic_id|new}`, clear on submit, submit calls `POST /api/concepts`
+- [x] **`src/components/card/AddCardButton.tsx`** — implement: floating action button fixed bottom-left, opens `ConceptForm`
+- [x] **`src/hooks/useDraftConcept.ts`** — implement: read/write `DraftConcept` from localStorage key `draft:concept:{topic_id|"new"}` debounced at 1s; expose `{ draft, save, clear }`
+- [x] **`tests/unit/validators-concept.test.ts`** — tests matching contract error boundaries: empty required string rejected, whitespace-only rejected, "N.A." accepted, comparisons min-1 enforced, `user_id` in body rejected by `.strict()`
+- [x] **`tests/unit/validators-topic.test.ts`** — tests: name required, max 80 chars, whitespace trimmed
+- [x] **`tests/unit/repos-topics.test.ts`** — unit tests for `TopicRepo`: 409 on duplicate name, 409 on delete with concepts, `user_id` scoping
+- [x] **`tests/unit/repos-concepts.test.ts`** — unit tests for `ConceptRepo`: 409 on duplicate title+topic, `user_id` always scoped, auto-creates topic from `topic_name_new`
 
 ---
 

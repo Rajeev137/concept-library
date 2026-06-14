@@ -124,3 +124,18 @@ These are the things most likely to cause a cross-user data leak if broken. Chec
 - One branch = one module = one PR; never commit directly to `main`
 - Commit format: `feat: <what it does` / `fix: <what it fixes>`
 - Run `npm test && npm run typecheck` before pushing
+
+## Progress
+
+| Phase | Status |
+|---|---|
+| Phase 0 — Repo, deploy, Supabase, RLS CI | Done (Vercel deploy pending manual step) |
+| Phase 1 — Auth (login, register, session, protected routes) | Done |
+| Phase 2 — Schema, create-concept form, POST endpoint | Done |
+| Phase 3 — List and detail view | Partial — `ConceptList` + `ConceptDetail` done; API routes + page wiring pending |
+| Phase 4 — Edit, delete, search, tags | Not started |
+| Phase 5 — Polish, mobile, keyboard, offline | Not started |
+
+### Completed in Phase 3 (branch `feat/concept-views`, PR open)
+- `src/components/card/ConceptList.tsx` — fetches topic concepts, skeleton, empty state, scroll restore, active highlight
+- `src/components/card/ConceptDetail.tsx` — full read-only render, edit via `ConceptForm`, delete with confirm, 401/404 handling
