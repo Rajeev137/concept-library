@@ -1,21 +1,64 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { createContext, useContext, useEffect, useCallback, type ReactNode } from "react";
 import type { UiPrefs } from "@/types";
+import { useLocalStorage } from "@/hooks/useLocalStorage";
+
+type Theme = UiPrefs["theme"];
+
+interface ThemeContextValue {
+  theme: Theme;
+  setTheme: (theme: Theme) => void;
+}
+
+const ThemeContext = createContext<ThemeContextValue | null>(null);
+
+function applyTheme(theme: Theme) {
+  if (typeof window === "undefined") return;
+  const root = document.documentElement;
+  if (theme === "system") {
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    root.classList.toggle("dark", prefersDark);
+  } else {
+    root.classList.toggle("dark", theme === "dark");
+  }
+}
 
 interface ThemeProviderProps {
   children: ReactNode;
 }
 
-// Reads theme preference from localStorage "ui:theme"; falls back to system preference
-// via matchMedia("(prefers-color-scheme: dark)"). Sets data-theme="dark|light" on <html>.
-// TODO: on mount, read localStorage "ui:theme"; if "system", check prefers-color-scheme.
-// TODO: apply data-theme attribute to document.documentElement.
-// TODO: expose a context so any component can call useTheme() to read/toggle theme.
-// TODO: listen to window matchMedia "change" event to react to system preference changes.
 export default function ThemeProvider({ children }: ThemeProviderProps) {
-  // TODO: useState for theme; useEffect to read localStorage and apply to <html>
-  return <>{children}</>;
+  const [theme, setThemeStored] = useLocalStorage<Theme>("ui:theme", "system");
+
+  useEffect(() => {
+    applyTheme(theme);
+  }, [theme]);
+
+  useEffect(() => {
+    if (theme !== "system") return;
+    const mq = window.matchMedia("(prefers-color-scheme: dark)");
+    const handler = () => applyTheme("system");
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, [theme]);
+
+  const setTheme = useCallback(
+    (next: Theme) => {
+      setThemeStored(next);
+    },
+    [setThemeStored]
+  );
+
+  return (
+    <ThemeContext.Provider value={{ theme, setTheme }}>
+      {children}
+    </ThemeContext.Provider>
+  );
 }
 
-// TODO: export useTheme() hook that returns { theme, setTheme } from ThemeContext
+export function useTheme(): ThemeContextValue {
+  const ctx = useContext(ThemeContext);
+  if (!ctx) throw new Error("useTheme must be used inside ThemeProvider");
+  return ctx;
+}
