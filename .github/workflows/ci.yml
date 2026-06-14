@@ -7,43 +7,61 @@ on:
     branches: [main]
 
 jobs:
-  ci:
+  secret-scan:
+    name: Secret scan
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Fail if SUPABASE_SERVICE_ROLE_KEY appears outside allowed paths
+        run: |
+          VIOLATIONS=$(grep -rn "SUPABASE_SERVICE_ROLE_KEY" src/ \
+            --include="*.ts" --include="*.tsx" \
+            | grep -v "^src/app/api/" \
+            | grep -v "^src/lib/server/")
+          if [ -n "$VIOLATIONS" ]; then
+            echo "ERROR: SUPABASE_SERVICE_ROLE_KEY found outside src/app/api/ or src/lib/server/:"
+            echo "$VIOLATIONS"
+            exit 1
+          fi
+          echo "Secret scan passed."
 
+  typecheck:
+    name: Typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
+      - run: npm ci
+      - run: npm run typecheck
 
-      - name: Install dependencies
-        run: npm ci
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
 
-      - name: Typecheck
-        run: npm run typecheck
-
-      - name: Lint
-        run: npm run lint
-
-      # Fail if SUPABASE_SERVICE_ROLE_KEY is referenced outside app/api/**
-      # Per contract: service-role key must never appear in components, hooks, or middleware HTML.
-      - name: Secret-location guard
-        run: |
-          VIOLATIONS=$(grep -r "SUPABASE_SERVICE_ROLE_KEY" src/ \
-            --include="*.ts" --include="*.tsx" \
-            --exclude-dir="app/api" \
-            -l || true)
-          if [ -n "$VIOLATIONS" ]; then
-            echo "ERROR: SUPABASE_SERVICE_ROLE_KEY referenced outside app/api/:"
-            echo "$VIOLATIONS"
-            exit 1
-          fi
-
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
       - name: Run tests
         run: npm test
         env:
-          # Tests use the anon key + test Supabase project — no real service-role key in CI
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.TEST_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.TEST_SUPABASE_ANON_KEY }}
           UPSTASH_REDIS_REST_URL: ${{ secrets.TEST_UPSTASH_REDIS_REST_URL }}
