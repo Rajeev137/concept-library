@@ -106,8 +106,12 @@ export default function HomePage() {
     if (panel === "create") {
       setPanel(conceptId ? "detail" : "list");
       setMobilePanel(conceptId ? "detail" : "list");
+    } else if (panel === "detail" && conceptId) {
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete("concept");
+      router.push(`/?${params.toString()}`);
     }
-  }, [showHelp, panel, conceptId]);
+  }, [showHelp, panel, conceptId, searchParams, router]);
 
   const handleFocusSearch = useCallback(() => {
     const input = document.querySelector<HTMLInputElement>("[aria-label='Search concepts']");
