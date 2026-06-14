@@ -19,7 +19,7 @@ out/
 *.tsbuildinfo
 next-env.d.ts
 
-# testing
+# Monitorring
 coverage/
 
 # OS
@@ -29,4 +29,4 @@ Thumbs.db
 # logs
 npm-debug.log*
 yarn-debug.log*
-yarn-error.log*
+yarn-error.log*.claude/worktrees/

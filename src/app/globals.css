@@ -1,0 +1,18 @@
+/* TODO: Define CSS custom properties for the design system:
+   - Neutral surface colors (light + dark mode via [data-theme="dark"])
+   - Subtle border colors
+   - Text colors (primary, secondary, muted)
+   - Spacing scale tokens
+   - Focus ring styles
+   Visual language: Claude web UI — neutral surfaces, calm spacing, no decorative gradients.
+*/
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, sans-serif;
+  /* TODO: apply --color-bg-surface, --color-text-primary from CSS vars */
+}
