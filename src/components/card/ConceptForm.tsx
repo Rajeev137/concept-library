@@ -105,12 +105,6 @@ export default function ConceptForm({ concept, defaultTopicId, onSuccess, onCanc
   const [topics, setTopics] = useState<Topic[]>([]);
   const [topicQuery, setTopicQuery] = useState("");
   const [topicDropdownOpen, setTopicDropdownOpen] = useState(false);
-  const [selectedTopicLabel, setSelectedTopicLabel] = useState<string>(() => {
-    if (concept) return "";
-    if (draft?.topic_name_new) return draft.topic_name_new;
-    return "";
-  });
-
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -124,7 +118,6 @@ export default function ConceptForm({ concept, defaultTopicId, onSuccess, onCanc
   useEffect(() => {
     if (!form.topic_id && !form.topic_name_new) return;
     if (form.topic_name_new) {
-      setSelectedTopicLabel(form.topic_name_new);
       setTopicQuery(form.topic_name_new);
       return;
     }
@@ -142,7 +135,6 @@ export default function ConceptForm({ concept, defaultTopicId, onSuccess, onCanc
           if (form.topic_id) {
             const match = res.data.find((t) => t.id === form.topic_id);
             if (match) {
-              setSelectedTopicLabel(match.name);
               setTopicQuery(match.name);
             }
           }
@@ -207,7 +199,6 @@ export default function ConceptForm({ concept, defaultTopicId, onSuccess, onCanc
     // If user clears input, clear selection
     if (!value.trim()) {
       setForm((f) => ({ ...f, topic_id: null, topic_name_new: "" }));
-      setSelectedTopicLabel("");
     } else {
       // Treat as new name until user picks from list
       setForm((f) => ({ ...f, topic_id: null, topic_name_new: value.trim() }));
@@ -217,7 +208,6 @@ export default function ConceptForm({ concept, defaultTopicId, onSuccess, onCanc
 
   function selectExistingTopic(topic: Topic) {
     setForm((f) => ({ ...f, topic_id: topic.id, topic_name_new: "" }));
-    setSelectedTopicLabel(topic.name);
     setTopicQuery(topic.name);
     setTopicDropdownOpen(false);
     setFieldErrors((e) => ({ ...e, topic_id: "" }));
@@ -225,7 +215,6 @@ export default function ConceptForm({ concept, defaultTopicId, onSuccess, onCanc
 
   function selectNewTopic(name: string) {
     setForm((f) => ({ ...f, topic_id: null, topic_name_new: name.trim() }));
-    setSelectedTopicLabel(name.trim());
     setTopicQuery(name.trim());
     setTopicDropdownOpen(false);
     setFieldErrors((e) => ({ ...e, topic_id: "" }));
