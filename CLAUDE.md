@@ -14,7 +14,7 @@ described here.
 - `contract.md` — all API endpoints, invariants, error boundaries, UI requirements
 - `interfaces.ts` — every type and function signature; import via `@/types`, never directly
 - `security.md` — Supabase dashboard config, CI job requirements, pre-launch smoke tests
-- `tasks.md` — current phase checklist; update when a module is done *(to be created)*
+- `tasks.md` — current phase checklist; update when a module is done
 
 ## Commands
 
