@@ -5,8 +5,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import ConceptList from "@/components/card/ConceptList";
 import ConceptDetail from "@/components/card/ConceptDetail";
 import ConceptForm from "@/components/card/ConceptForm";
-import KeyboardShortcutsHelp from "@/components/ui/KeyboardShortcutsHelp";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
+import KeyboardShortcutsHelp from "@/components/ui/KeyboardShortcutsHelp";
 
 type Panel = "list" | "detail" | "create";
 
@@ -91,42 +91,36 @@ export default function HomePage() {
     setMobilePanel("detail");
   }, []);
 
-  const handleEditCard = useCallback(() => {
-    if (conceptId) setPanel("detail");
-  }, [conceptId]);
-
-  const handleDeleteCard = useCallback(() => {
-    if (!conceptId) return;
-    const btn = document.querySelector<HTMLButtonElement>("[data-action='delete-concept']");
-    btn?.click();
-  }, [conceptId]);
-
-  const handleClose = useCallback(() => {
-    if (showHelp) { setShowHelp(false); return; }
-    if (panel === "create") {
-      setPanel(conceptId ? "detail" : "list");
-      setMobilePanel(conceptId ? "detail" : "list");
-    } else if (panel === "detail" && conceptId) {
-      const params = new URLSearchParams(searchParams.toString());
-      params.delete("concept");
-      router.push(`/?${params.toString()}`);
-    }
-  }, [showHelp, panel, conceptId, searchParams, router]);
-
-  const handleFocusSearch = useCallback(() => {
-    const input = document.querySelector<HTMLInputElement>("[aria-label='Search concepts']");
-    input?.focus();
-  }, []);
-
-  const handleShowHelp = useCallback(() => setShowHelp(true), []);
-
   useKeyboardShortcuts({
     onNewCard: handleAddCard,
-    onEditCard: handleEditCard,
-    onDeleteCard: handleDeleteCard,
-    onClose: handleClose,
-    onFocusSearch: handleFocusSearch,
-    onShowHelp: handleShowHelp,
+    onEditCard: () => {
+      if (conceptId) {
+        const btn = document.querySelector<HTMLButtonElement>("article button:first-of-type");
+        btn?.click();
+      }
+    },
+    onDeleteCard: () => {
+      if (conceptId) {
+        const buttons = document.querySelectorAll<HTMLButtonElement>("article button");
+        const deleteBtn = Array.from(buttons).find((b) => b.textContent?.trim() === "Delete");
+        deleteBtn?.click();
+      }
+    },
+    onClose: () => {
+      if (panel === "create") {
+        setPanel(conceptId ? "detail" : "list");
+        setMobilePanel(conceptId ? "detail" : "list");
+      } else if (panel === "detail" && conceptId) {
+        const params = new URLSearchParams(searchParams.toString());
+        params.delete("concept");
+        router.push(`/?${params.toString()}`);
+      }
+    },
+    onFocusSearch: () => {
+      const input = document.querySelector<HTMLInputElement>('[aria-label="Search concepts"]');
+      input?.focus();
+    },
+    onShowHelp: () => setShowHelp(true),
   });
 
   const listPanel = (

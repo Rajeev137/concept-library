@@ -258,6 +258,15 @@ export default function Sidebar({ collapsed, onCollapsedChange, isMobileDrawer, 
     }
   }, [reloadTopics, showToast]);
 
+  useEffect(() => {
+    if (!isMobileDrawer) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && onClose) onClose();
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, [isMobileDrawer, onClose]);
+
   const handleLogout = async () => {
     await fetch("/api/auth/logout", { method: "POST" });
     router.push("/login");
@@ -470,7 +479,7 @@ export default function Sidebar({ collapsed, onCollapsedChange, isMobileDrawer, 
         />
         <aside
           aria-label="Topics"
-          className="fixed inset-y-0 left-0 z-40 w-72 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 shadow-xl"
+          className="fixed inset-y-0 left-0 z-40 w-72 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 shadow-xl translate-x-0 transition-transform duration-200 ease-out"
         >
           {sidebarContent}
         </aside>

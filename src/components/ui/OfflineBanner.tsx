@@ -2,13 +2,32 @@
 
 import { useState, useEffect } from "react";
 
+function hasDraftInStorage(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    return Object.keys(localStorage).some((k) => k.startsWith("draft:concept:"));
+  } catch {
+    return false;
+  }
+}
+
 export default function OfflineBanner() {
   const [offline, setOffline] = useState(false);
+  const [hasDraft, setHasDraft] = useState(false);
 
   useEffect(() => {
-    setOffline(!navigator.onLine);
-    const onOnline = () => setOffline(false);
-    const onOffline = () => setOffline(true);
+    const isOffline = !navigator.onLine;
+    setOffline(isOffline);
+    if (isOffline) setHasDraft(hasDraftInStorage());
+
+    const onOnline = () => {
+      setOffline(false);
+      setHasDraft(false);
+    };
+    const onOffline = () => {
+      setOffline(true);
+      setHasDraft(hasDraftInStorage());
+    };
     window.addEventListener("online", onOnline);
     window.addEventListener("offline", onOffline);
     return () => {
@@ -26,6 +45,9 @@ export default function OfflineBanner() {
       className="fixed top-0 inset-x-0 z-50 bg-yellow-400 text-yellow-900 text-sm text-center py-2 px-4"
     >
       You are offline — changes will be saved locally
+      {hasDraft && (
+        <span className="ml-1">· Unsaved changes are preserved</span>
+      )}
     </div>
   );
 }

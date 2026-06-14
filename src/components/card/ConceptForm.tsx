@@ -113,6 +113,8 @@ export default function ConceptForm({ concept, defaultTopicId, onSuccess, onCanc
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [offlineRetry, setOfflineRetry] = useState(false);
+  const pendingInputRef = useRef<ConceptInput | null>(null);
 
   const topicInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -178,6 +180,17 @@ export default function ConceptForm({ concept, defaultTopicId, onSuccess, onCanc
       if (draftTimerRef.current) clearTimeout(draftTimerRef.current);
     };
   }, [form, comparisons, image]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // When browser comes back online after a failed submit, swap the error for the retry toast
+  useEffect(() => {
+    if (!offlineRetry) return;
+    function handleOnline() {
+      setSubmitError(null);
+      // offlineRetry stays true so the "Back online — tap to retry" toast renders
+    }
+    window.addEventListener("online", handleOnline);
+    return () => window.removeEventListener("online", handleOnline);
+  }, [offlineRetry]);
 
   // Topic combobox helpers
   const filteredTopics = topics.filter((t) =>
@@ -291,6 +304,7 @@ export default function ConceptForm({ concept, defaultTopicId, onSuccess, onCanc
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSubmitError(null);
+    setOfflineRetry(false);
 
     const input: ConceptInput = {
       topic_id: form.topic_id,
@@ -322,6 +336,12 @@ export default function ConceptForm({ concept, defaultTopicId, onSuccess, onCanc
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(input),
       });
+      if (res.status === 503) {
+        pendingInputRef.current = input;
+        setOfflineRetry(true);
+        setSubmitError("You appear to be offline. Your draft is saved locally.");
+        return;
+      }
       const data = (await res.json()) as ApiResult<Concept>;
       if (!data.ok) {
         if (res.status === 422 && data.error.fields) {
@@ -338,7 +358,43 @@ export default function ConceptForm({ concept, defaultTopicId, onSuccess, onCanc
       clearDraft();
       onSuccess(data.data);
     } catch {
-      setSubmitError("Something went wrong. Please try again.");
+      pendingInputRef.current = input;
+      setOfflineRetry(true);
+      setSubmitError("You appear to be offline. Your draft is saved locally.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function handleRetry() {
+    if (!pendingInputRef.current) return;
+    setSubmitError(null);
+    setOfflineRetry(false);
+    setSubmitting(true);
+    try {
+      const url = concept ? `/api/concepts/${concept.id}` : "/api/concepts";
+      const method = concept ? "PUT" : "POST";
+      const res = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(pendingInputRef.current),
+      });
+      if (res.status === 503) {
+        setOfflineRetry(true);
+        setSubmitError("You appear to be offline. Your draft is saved locally.");
+        return;
+      }
+      const data = (await res.json()) as ApiResult<Concept>;
+      if (!data.ok) {
+        setSubmitError(data.error.message);
+        return;
+      }
+      pendingInputRef.current = null;
+      clearDraft();
+      onSuccess(data.data);
+    } catch {
+      setOfflineRetry(true);
+      setSubmitError("You appear to be offline. Your draft is saved locally.");
     } finally {
       setSubmitting(false);
     }
@@ -700,11 +756,40 @@ export default function ConceptForm({ concept, defaultTopicId, onSuccess, onCanc
         )}
       </div>
 
-      {/* Submit error */}
+      {/* Submit error / offline notice */}
       {submitError && (
-        <p className="text-sm text-red-500 rounded-md border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 px-3 py-2">
-          {submitError}
-        </p>
+        <div className="rounded-md border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 px-3 py-2 flex items-center justify-between gap-3">
+          <p className="text-sm text-red-500">{submitError}</p>
+          {offlineRetry && (
+            <button
+              type="button"
+              onClick={handleRetry}
+              className="shrink-0 text-xs font-medium text-red-600 dark:text-red-400 underline underline-offset-2 hover:text-red-800 dark:hover:text-red-200 transition-colors"
+            >
+              Retry
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Back-online retry toast */}
+      {offlineRetry && !submitError && (
+        <div
+          role="alert"
+          aria-live="polite"
+          className="rounded-md border border-yellow-300 dark:border-yellow-700 bg-yellow-50 dark:bg-yellow-900/20 px-3 py-2 flex items-center justify-between gap-3"
+        >
+          <p className="text-sm text-yellow-800 dark:text-yellow-300">
+            Back online — tap to retry
+          </p>
+          <button
+            type="button"
+            onClick={handleRetry}
+            className="shrink-0 text-xs font-medium text-yellow-800 dark:text-yellow-300 underline underline-offset-2 hover:text-yellow-900 dark:hover:text-yellow-100 transition-colors"
+          >
+            Retry
+          </button>
+        </div>
       )}
 
       {/* Actions */}
