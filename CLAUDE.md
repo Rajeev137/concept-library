@@ -27,7 +27,7 @@ npm test           # vitest run — one-shot, use before committing
 npm run coverage   # vitest run --coverage — full report; check before merging
 ```
 
-To run a single test file: `npx vitest run tests/validators.test.ts`
+To run a single test file: `npx vitest run tests/unit/rate-limit.test.ts`
 
 ## Agent roles
 

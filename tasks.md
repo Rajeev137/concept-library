@@ -34,13 +34,13 @@ Legend: `[ ]` todo · `[x]` done · `[~]` current phase
 - [x] **`src/app/api/auth/password-reset/request/route.ts`** — rate-limit, validate, fire-and-forget `resetPasswordForEmail()`, always `{ ok: true }`, 250ms floor
 - [x] **`src/app/api/auth/password-reset/confirm/route.ts`** — validate, password policy, `exchangeCodeForSession()`, `updateUser()`, generic error
 - [x] **`src/middleware.ts`** — session refresh, all security headers (CSP/HSTS/etc.), Origin CSRF check on POST/PUT/DELETE to `/api/*`
-- [ ] **`src/app/(auth)/layout.tsx`** — auth route group layout: no app shell; redirect to `/` if session already exists
-- [ ] **`src/app/(auth)/login/page.tsx`** — login form: email + password fields, submit calls `POST /api/auth/login`, shows generic error, redirects to `returnUrl` or `/` on success
-- [ ] **`src/app/(auth)/register/page.tsx`** — register form: email + password, calls `POST /api/auth/register`, shows "check your email" after success
-- [ ] **`src/app/(auth)/reset-password/page.tsx`** — request-reset form: email field, calls `/api/auth/password-reset/request`
-- [ ] **`src/app/(auth)/reset-password/confirm/page.tsx`** — confirm-reset form: reads token from URL, new_password field, calls `/api/auth/password-reset/confirm`
-- [ ] **`src/app/(app)/layout.tsx`** — protected layout: call `getSession()`; redirect to `/login?returnUrl=…` if null; render `AppShell` around `{children}`
-- [ ] **`src/hooks/useSession.ts`** — implement: read session from Supabase browser client; expose `{ session, loading }`
+- [x] **`src/app/(auth)/layout.tsx`** — auth route group layout: no app shell; redirect to `/` if session already exists
+- [x] **`src/app/(auth)/login/page.tsx`** — login form: email + password fields, submit calls `POST /api/auth/login`, shows generic error, redirects to `returnUrl` or `/` on success
+- [x] **`src/app/(auth)/register/page.tsx`** — register form: email + password, calls `POST /api/auth/register`, shows "check your email" after success
+- [x] **`src/app/(auth)/reset-password/page.tsx`** — request-reset form: email field, calls `/api/auth/password-reset/request`
+- [x] **`src/app/(auth)/reset-password/confirm/page.tsx`** — confirm-reset form: reads token from URL, new_password field, calls `/api/auth/password-reset/confirm`
+- [x] **`src/app/(app)/layout.tsx`** — protected layout: call `getSession()`; redirect to `/login?returnUrl=…` if null; render `AppShell` around `{children}`
+- [x] **`src/hooks/useSession.ts`** — implement: read session from Supabase browser client; expose `{ session, loading, error }`
 - [x] **`tests/unit/validators-auth.test.ts`** — 33 tests: min length, common-password rejection, valid password, all four schema strict-mode checks, user_id injection rejection
 - [x] **`tests/unit/rate-limit.test.ts`** — 18 tests: allowed on first hit, denied after limit, fail-open on Redis error
 
