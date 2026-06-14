@@ -1,31 +1,61 @@
 "use client";
 
-import type { DraftConcept, ConceptInput, UUID } from "@/types";
-import { useLocalStorage } from "./useLocalStorage";
+import { useCallback, useEffect, useRef, useState } from "react";
+import type { DraftConcept, UUID } from "@/types";
 
-// Auto-saves partial ConceptInput to localStorage under "draft:concept:{topicKey}".
-// topicKey is the topic_id UUID or "new" when no topic is selected yet.
-// Auto-save fires every 1s via useEffect + setInterval.
-// Returns { draft, updateDraft, clearDraft }.
-//
-// TODO: build localStorage key from topicKey: `draft:concept:${topicKey}`
-// TODO: useLocalStorage to read/write the DraftConcept value
-// TODO: updateDraft: merge partial updates and write updated_at = new Date().toISOString()
-// TODO: auto-save effect: setInterval 1000ms; clears on unmount
-// TODO: clearDraft: remove the key from localStorage (called on successful form submit)
-export function useDraftConcept(topicKey: UUID | "new") {
-  const key = `draft:concept:${topicKey}`;
-  const [draft, setDraft] = useLocalStorage<DraftConcept | null>(key, null);
+function storageKey(topicId: UUID | "new"): string {
+  return `draft:concept:${topicId}`;
+}
 
-  // TODO: implement updateDraft(partial: Partial<ConceptInput>): void
-  function updateDraft(partial: Partial<ConceptInput>): void {
-    // TODO: setDraft(prev => ({ ...(prev ?? { topic_id: null, partial: {} }), partial: { ...prev?.partial, ...partial }, updated_at: new Date().toISOString() }))
+function readDraft(topicId: UUID | "new"): DraftConcept | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem(storageKey(topicId));
+    return raw ? (JSON.parse(raw) as DraftConcept) : null;
+  } catch {
+    return null;
   }
+}
 
-  // TODO: implement clearDraft(): void
-  function clearDraft(): void {
-    // TODO: localStorage.removeItem(key); setDraft(null)
-  }
+export function useDraftConcept(topicId: UUID | "new"): {
+  draft: DraftConcept | null;
+  save: (draft: DraftConcept) => void;
+  clear: () => void;
+} {
+  const [draft, setDraft] = useState<DraftConcept | null>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  return { draft, updateDraft, clearDraft };
+  useEffect(() => {
+    setDraft(readDraft(topicId));
+    return () => {
+      if (timerRef.current !== null) clearTimeout(timerRef.current);
+    };
+  }, [topicId]);
+
+  const save = useCallback(
+    (next: DraftConcept) => {
+      setDraft(next);
+      if (timerRef.current !== null) clearTimeout(timerRef.current);
+      timerRef.current = setTimeout(() => {
+        if (typeof window !== "undefined") {
+          localStorage.setItem(storageKey(topicId), JSON.stringify(next));
+        }
+        timerRef.current = null;
+      }, 1000);
+    },
+    [topicId],
+  );
+
+  const clear = useCallback(() => {
+    if (timerRef.current !== null) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+    setDraft(null);
+    if (typeof window !== "undefined") {
+      localStorage.removeItem(storageKey(topicId));
+    }
+  }, [topicId]);
+
+  return { draft, save, clear };
 }
