@@ -5,7 +5,7 @@ import { getSession, requireUser } from "@/lib/supabase/server";
 import { listTopics, createTopic, findTopicByName } from "@/lib/repos/topics";
 import { topicInputSchema } from "@/lib/validators/topic";
 
-export const GET = apiHandler(async (_request: NextRequest) => {
+export const GET = apiHandler(async () => {
   const session = await getSession();
   requireUser(session);
   const topics = await listTopics(session);

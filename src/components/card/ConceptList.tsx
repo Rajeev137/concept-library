@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import type { Concept, UUID } from "@/types";
+import type { Concept } from "@/types";
 
 interface ConceptListProps {
   topicId?: string;
