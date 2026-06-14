@@ -1,76 +1,188 @@
 import type { Session, Concept, ConceptInput, UUID } from "@/types";
+import { createClient } from "@/lib/supabase/server";
+import { ApiRouteError } from "@/lib/errors";
+import { validateConcept } from "@/lib/validators/concept";
+import { findTopicByName, createTopic } from "@/lib/repos/topics";
 
-// All methods scoped to session.user_id via RLS + explicit WHERE user_id = ?
-// Import createClient from @/lib/supabase/server.
+function mapSupabaseError(error: { message: string; code?: string }): ApiRouteError {
+  if (error.code === "PGRST116") {
+    return new ApiRouteError("NOT_FOUND", "Resource not found", 404);
+  }
+  if (error.code === "23505") {
+    return new ApiRouteError("CONFLICT", "A concept with this title already exists in the topic", 409);
+  }
+  return new ApiRouteError("UPSTREAM_UNAVAILABLE", error.message, 503);
+}
 
-// TODO: List concepts for the session user. Supports optional filter opts:
-// - q: full-text search on title (ilike %q%)
-// - tag: array contains filter on tags column
-// - topic_id: filter by topic UUID
-// All filters are AND-combined. Returns concept rows joined with comparisons[].
+async function fetchConceptWithComparisons(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  id: UUID,
+  userId: UUID
+): Promise<Concept | null> {
+  const { data, error } = await supabase
+    .from("concepts")
+    .select("*, comparisons(*)")
+    .eq("id", id)
+    .eq("user_id", userId)
+    .order("position", { referencedTable: "comparisons", ascending: true })
+    .maybeSingle();
+  if (error) throw mapSupabaseError(error);
+  return data;
+}
+
 export async function listConcepts(
   session: Session,
   opts?: { q?: string; tag?: string; topic_id?: UUID }
 ): Promise<Concept[]> {
-  // TODO: const supabase = await createClient()
-  // TODO: let query = supabase.from("concepts").select("*, comparisons(*)").eq("user_id", session.user_id)
-  // TODO: if (opts?.q) query = query.ilike("title", `%${opts.q}%`)
-  // TODO: if (opts?.tag) query = query.contains("tags", [opts.tag])
-  // TODO: if (opts?.topic_id) query = query.eq("topic_id", opts.topic_id)
-  // TODO: const { data, error } = await query.order("updated_at", { ascending: false })
-  // TODO: if (error) throw mapSupabaseError(error)
-  // TODO: return data
-  return [];
+  const supabase = await createClient();
+  let query = supabase
+    .from("concepts")
+    .select("*, comparisons(*)")
+    .eq("user_id", session.user_id);
+  if (opts?.q) query = query.ilike("title", `%${opts.q}%`);
+  if (opts?.tag) query = query.contains("tags", [opts.tag]);
+  if (opts?.topic_id) query = query.eq("topic_id", opts.topic_id);
+  const { data, error } = await query.order("updated_at", { ascending: false });
+  if (error) throw mapSupabaseError(error);
+  return data;
 }
 
-// TODO: Get a single concept by id scoped to session.user_id. Return null if not found.
-// Joins comparisons ordered by position ASC.
 export async function getConcept(session: Session, id: UUID): Promise<Concept | null> {
-  // TODO: const supabase = await createClient()
-  // TODO: const { data, error } = await supabase.from("concepts").select("*, comparisons(*order(position))").eq("id", id).eq("user_id", session.user_id).maybeSingle()
-  // TODO: if (error) throw mapSupabaseError(error)
-  // TODO: return data
-  return null;
+  const supabase = await createClient();
+  return fetchConceptWithComparisons(supabase, id, session.user_id);
 }
 
-// TODO: Create a concept. Validate input via validateConcept; throw 422 on failure.
-// If input.topic_id is null and topic_name_new is provided, call createTopic first to
-// get the new topic's id. Validate that the resolved topic belongs to the session user.
-// Insert concept row (user_id from session), then upsert comparisons rows.
-// Throw 409 if title already exists under the same topic for this user.
 export async function createConcept(session: Session, input: ConceptInput): Promise<Concept> {
-  // TODO: validate input via validateConcept; throw ApiRouteError("VALIDATION", ..., 422) on failure
-  // TODO: resolve topic_id: if null, call createTopic(session, { name: input.topic_name_new! })
-  // TODO: const supabase = await createClient()
-  // TODO: insert into concepts, capture new id
-  // TODO: insert comparisons rows referencing new concept id
-  // TODO: return the assembled Concept with comparisons
-  throw new Error("TODO");
+  const validation = validateConcept(input);
+  if (!validation.ok) {
+    throw new ApiRouteError("VALIDATION", "Validation failed", 422, validation.errors);
+  }
+
+  let topicId = input.topic_id;
+
+  if (topicId === null && input.topic_name_new) {
+    const existing = await findTopicByName(session, input.topic_name_new);
+    if (existing) {
+      throw new ApiRouteError(
+        "CONFLICT",
+        `Topic "${existing.name}" already exists`,
+        409
+      );
+    }
+    const newTopic = await createTopic(session, { name: input.topic_name_new });
+    topicId = newTopic.id;
+  }
+
+  const supabase = await createClient();
+  const { data: concept, error: conceptError } = await supabase
+    .from("concepts")
+    .insert({
+      user_id: session.user_id,
+      topic_id: topicId,
+      title: input.title,
+      what_it_does: input.what_it_does,
+      when_it_breaks: input.when_it_breaks,
+      explain_in_30s: input.explain_in_30s,
+      where_i_used_it: input.where_i_used_it,
+      tags: input.tags,
+      image: input.image,
+    })
+    .select()
+    .single();
+  if (conceptError) throw mapSupabaseError(conceptError);
+
+  if (input.comparisons.length > 0) {
+    const rows = input.comparisons.map((c) => ({
+      concept_id: concept.id,
+      alternative: c.alternative,
+      difference: c.difference,
+      position: c.position,
+    }));
+    const { error: cmpError } = await supabase.from("comparisons").insert(rows);
+    if (cmpError) throw mapSupabaseError(cmpError);
+  }
+
+  const full = await fetchConceptWithComparisons(supabase, concept.id, session.user_id);
+  if (!full) throw new ApiRouteError("INTERNAL", "Failed to fetch created concept", 500);
+  return full;
 }
 
-// TODO: Update a concept. Validate input. Verify the concept exists for this user (404 if not).
-// Update concept row WHERE id AND user_id. Replace comparisons: delete old rows, insert new.
-// Throw 409 if new title conflicts with another concept in the same topic.
 export async function updateConcept(
   session: Session,
   id: UUID,
   input: ConceptInput
 ): Promise<Concept> {
-  // TODO: validate input via validateConcept; throw 422 on failure
-  // TODO: verify concept exists for user; throw 404 if not
-  // TODO: const supabase = await createClient()
-  // TODO: update concept columns WHERE id AND user_id
-  // TODO: delete old comparisons WHERE concept_id, insert new comparisons
-  // TODO: return updated Concept with comparisons
-  throw new Error("TODO");
+  const validation = validateConcept(input);
+  if (!validation.ok) {
+    throw new ApiRouteError("VALIDATION", "Validation failed", 422, validation.errors);
+  }
+
+  const supabase = await createClient();
+
+  const { data: existing, error: findError } = await supabase
+    .from("concepts")
+    .select("id")
+    .eq("id", id)
+    .eq("user_id", session.user_id)
+    .maybeSingle();
+  if (findError) throw mapSupabaseError(findError);
+  if (!existing) throw new ApiRouteError("NOT_FOUND", "Concept not found", 404);
+
+  const { error: updateError } = await supabase
+    .from("concepts")
+    .update({
+      topic_id: input.topic_id,
+      title: input.title,
+      what_it_does: input.what_it_does,
+      when_it_breaks: input.when_it_breaks,
+      explain_in_30s: input.explain_in_30s,
+      where_i_used_it: input.where_i_used_it,
+      tags: input.tags,
+      image: input.image,
+    })
+    .eq("id", id)
+    .eq("user_id", session.user_id);
+  if (updateError) throw mapSupabaseError(updateError);
+
+  const { error: deleteError } = await supabase
+    .from("comparisons")
+    .delete()
+    .eq("concept_id", id);
+  if (deleteError) throw mapSupabaseError(deleteError);
+
+  if (input.comparisons.length > 0) {
+    const rows = input.comparisons.map((c) => ({
+      concept_id: id,
+      alternative: c.alternative,
+      difference: c.difference,
+      position: c.position,
+    }));
+    const { error: cmpError } = await supabase.from("comparisons").insert(rows);
+    if (cmpError) throw mapSupabaseError(cmpError);
+  }
+
+  const full = await fetchConceptWithComparisons(supabase, id, session.user_id);
+  if (!full) throw new ApiRouteError("INTERNAL", "Failed to fetch updated concept", 500);
+  return full;
 }
 
-// TODO: Delete a concept and its comparisons. Use cascade delete in DB schema, or
-// manually delete comparisons then concept. Scoped to session.user_id.
-// Return { ok: true }; throw 404 if not found.
 export async function removeConcept(session: Session, id: UUID): Promise<{ ok: true }> {
-  // TODO: const supabase = await createClient()
-  // TODO: const { error } = await supabase.from("concepts").delete().eq("id", id).eq("user_id", session.user_id)
-  // TODO: if (error) throw mapSupabaseError(error)
+  const supabase = await createClient();
+
+  const { data: existing, error: findError } = await supabase
+    .from("concepts")
+    .select("id")
+    .eq("id", id)
+    .eq("user_id", session.user_id)
+    .maybeSingle();
+  if (findError) throw mapSupabaseError(findError);
+  if (!existing) throw new ApiRouteError("NOT_FOUND", "Concept not found", 404);
+
+  const { error } = await supabase
+    .from("concepts")
+    .delete()
+    .eq("id", id)
+    .eq("user_id", session.user_id);
+  if (error) throw mapSupabaseError(error);
   return { ok: true };
 }
