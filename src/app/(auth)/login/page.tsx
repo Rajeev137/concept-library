@@ -48,6 +48,12 @@ export default function LoginPage() {
         Sign in
       </h1>
 
+      {searchParams.get("passwordReset") && (
+        <p className="text-sm text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-950 rounded px-3 py-2 mb-4">
+          Password updated. Please sign in.
+        </p>
+      )}
+
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <div className="flex flex-col gap-1">
           <label htmlFor="email" className="text-sm text-neutral-600 dark:text-neutral-400">
