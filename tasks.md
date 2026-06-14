@@ -79,11 +79,11 @@ Legend: `[ ]` todo · `[x]` done · `[~]` current phase
 ## Phase 3 — List and detail view
 > Goal: deployable. You can browse all cards, click a topic to see its cards, click a card to read it.
 
-- [ ] **`src/app/api/concepts/[id]/route.ts`** — GET: `requireUser`, call `conceptRepo.get()`, 404 if null (never 403); PUT: validate `ConceptInput`, call `conceptRepo.update()`; DELETE: call `conceptRepo.remove()`
-- [ ] **`src/app/api/concepts/search/route.ts`** — GET: parse `?q=&tag=&topic=` from URL, `requireUser`, call `conceptRepo.list({ q, tag, topic_id })`
-- [ ] **`src/app/(app)/page.tsx`** — implement: read `?topic=&concept=` URL params; render `ConceptList` (topic view or all-cards) in main panel; render `ConceptDetail` when `concept` param is set; restore scroll position from `sessionStorage` key `scroll:topic:{topicId}`
-- [ ] **`src/components/card/ConceptList.tsx`** — implement: fetch from `GET /api/topics/:id/concepts` or `GET /api/concepts`; render card title rows; click updates URL param `?concept=`; show loading skeleton; show empty state
-- [ ] **`src/components/card/ConceptDetail.tsx`** — implement: fetch `GET /api/concepts/:id`; render all fields read-only (title, what_it_does, comparisons table, when_it_breaks, explain_in_30s, where_i_used_it, tags, image full-size); edit + delete buttons in header
+- [x] **`src/app/api/concepts/[id]/route.ts`** — GET: `requireUser`, call `conceptRepo.get()`, 404 if null (never 403); PUT: validate `ConceptInput`, call `conceptRepo.update()`; DELETE: call `conceptRepo.remove()`
+- [x] **`src/app/api/concepts/search/route.ts`** — GET: parse `?q=&tag=&topic=` from URL, `requireUser`, call `conceptRepo.list({ q, tag, topic_id })`
+- [x] **`src/app/(app)/page.tsx`** — implement: read `?topic=&concept=` URL params; render `ConceptList` (topic view or all-cards) in main panel; render `ConceptDetail` when `concept` param is set; mobile/desktop master-detail layout with panel switching
+- [x] **`src/components/card/ConceptList.tsx`** — implement: fetch from `GET /api/topics/:id/concepts` or `GET /api/concepts`; render card title rows; click updates URL param `?concept=`; show loading skeleton; show empty state
+- [x] **`src/components/card/ConceptDetail.tsx`** — implement: fetch `GET /api/concepts/:id`; render all fields read-only (title, what_it_does, comparisons table, when_it_breaks, explain_in_30s, where_i_used_it, tags, image full-size); edit + delete buttons in header
 - [ ] **`tests/unit/concept-detail.test.ts`** — tests: 404 returns null (not 403), RLS denial surfaces as 404, detail renders all fields
 
 ---
@@ -91,12 +91,12 @@ Legend: `[ ]` todo · `[x]` done · `[~]` current phase
 ## Phase 4 — Edit, delete, search, tags
 > Goal: deployable. Full CRUD. Search works. Tags filter.
 
-- [ ] **`src/components/card/ConceptForm.tsx`** (edit mode) — extend existing form: accept optional `concept` prop; pre-fill all fields from existing `Concept`; on submit call `PUT /api/concepts/:id`; clear draft on success
-- [ ] **`src/components/card/ConceptDetail.tsx`** (delete flow) — wire delete button: call `DELETE /api/concepts/:id`, on success remove from URL and refresh topic list; show confirmation before delete
-- [ ] **`src/components/sidebar/Sidebar.tsx`** (search) — wire search box to `GET /api/concepts/search?q=`; debounce 300ms; highlight matching titles; clear on empty
-- [ ] **`src/components/ui/TagInput.tsx`** — new component: comma or enter to add tag, backspace to remove last, renders tag chips; used in `ConceptForm`
-- [ ] **Tag filter in sidebar/search** — clicking a tag chip in `ConceptDetail` updates URL and triggers `GET /api/concepts/search?tag=`
-- [ ] **Topic rename + delete** — wire PUT/DELETE topic from sidebar context menu (right-click or ellipsis); 409 with concept count shown as toast
+- [x] **`src/components/card/ConceptForm.tsx`** (edit mode) — extend existing form: accept optional `concept` prop; pre-fill all fields from existing `Concept`; on submit call `PUT /api/concepts/:id`; clear draft on success
+- [x] **`src/components/card/ConceptDetail.tsx`** (delete flow) — wire delete button: call `DELETE /api/concepts/:id`, on success remove from URL and refresh topic list; show confirmation before delete
+- [x] **`src/components/sidebar/Sidebar.tsx`** (search) — wire search box to `GET /api/concepts/search?q=`; debounce 300ms; highlight matching titles; clear on empty
+- [x] **`src/components/ui/TagInput.tsx`** — new component: comma or enter to add tag, backspace to remove last, renders tag chips; used in `ConceptForm`
+- [x] **Tag filter in sidebar/search** — clicking a tag chip in `ConceptDetail` updates URL and triggers `GET /api/concepts/search?tag=`
+- [x] **Topic rename + delete** — wire PUT/DELETE topic from sidebar context menu (right-click or ellipsis); 409 with concept count shown as toast
 - [ ] **`tests/unit/search.test.ts`** — tests: `q` param filters by title substring, `tag` param filters by exact tag, `topic` param scopes to topic; all scoped to `user_id`
 
 ---
