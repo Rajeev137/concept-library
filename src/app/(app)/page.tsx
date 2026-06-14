@@ -5,6 +5,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import ConceptList from "@/components/card/ConceptList";
 import ConceptDetail from "@/components/card/ConceptDetail";
 import ConceptForm from "@/components/card/ConceptForm";
+import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
+import KeyboardShortcutsHelp from "@/components/ui/KeyboardShortcutsHelp";
 
 type Panel = "list" | "detail" | "create";
 
@@ -28,6 +30,8 @@ export default function HomePage() {
 
   // Key to force ConceptList to re-fetch after mutations
   const [listKey, setListKey] = useState(0);
+
+  const [showHelp, setShowHelp] = useState(false);
 
   // Sync panel when URL changes (e.g. browser back/forward)
   useEffect(() => {
@@ -86,6 +90,38 @@ export default function HomePage() {
     setPanel("create");
     setMobilePanel("detail");
   }, []);
+
+  useKeyboardShortcuts({
+    onNewCard: handleAddCard,
+    onEditCard: () => {
+      if (conceptId) {
+        const btn = document.querySelector<HTMLButtonElement>("article button:first-of-type");
+        btn?.click();
+      }
+    },
+    onDeleteCard: () => {
+      if (conceptId) {
+        const buttons = document.querySelectorAll<HTMLButtonElement>("article button");
+        const deleteBtn = Array.from(buttons).find((b) => b.textContent?.trim() === "Delete");
+        deleteBtn?.click();
+      }
+    },
+    onClose: () => {
+      if (panel === "create") {
+        setPanel(conceptId ? "detail" : "list");
+        setMobilePanel(conceptId ? "detail" : "list");
+      } else if (panel === "detail" && conceptId) {
+        const params = new URLSearchParams(searchParams.toString());
+        params.delete("concept");
+        router.push(`/?${params.toString()}`);
+      }
+    },
+    onFocusSearch: () => {
+      const input = document.querySelector<HTMLInputElement>('[aria-label="Search concepts"]');
+      input?.focus();
+    },
+    onShowHelp: () => setShowHelp(true),
+  });
 
   const listPanel = (
     <div className="flex flex-col h-full">
@@ -159,6 +195,8 @@ export default function HomePage() {
 
   return (
     <>
+      {showHelp && <KeyboardShortcutsHelp onClose={() => setShowHelp(false)} />}
+
       {/* Desktop: master-detail side by side (lg+) */}
       <div className="hidden lg:flex h-full">
         {/* List: left third */}
