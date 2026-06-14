@@ -129,11 +129,11 @@ These are the things most likely to cause a cross-user data leak if broken. Chec
 
 | Phase | Status |
 |---|---|
-| Phase 0 — Repo, deploy, Supabase, RLS CI | Done (Vercel deploy pending manual step) |
+| Phase 0 — Repo, deploy, Supabase, RLS CI | Done |
 | Phase 1 — Auth (login, register, session, protected routes) | Done |
 | Phase 2 — Schema, create-concept form, POST endpoint | Done |
-| Phase 3 — List and detail view | Partial — all components + API routes + page wiring done; `concept-detail` unit tests pending |
-| Phase 4 — Edit, delete, search, tags | Partial — all features done; `search` unit tests pending |
+| Phase 3 — List and detail view | Done |
+| Phase 4 — Edit, delete, search, tags | Done |
 | Phase 5 — Polish, mobile, keyboard, offline | Not started |
 
 ### Completed in Phase 3
@@ -142,9 +142,11 @@ These are the things most likely to cause a cross-user data leak if broken. Chec
 - `src/app/api/concepts/[id]/route.ts` — GET/PUT/DELETE with `requireUser`, 404 on missing/unauthorized
 - `src/app/api/concepts/search/route.ts` — GET with `?q=&tag=&topic=` filters, scoped to session user
 - `src/app/(app)/page.tsx` — master-detail layout, URL-driven panel state (`?topic=&concept=`), mobile/desktop responsive, add-card flow
+- `tests/unit/concept-detail.test.ts` — 404 returns null (not 403), RLS denial surfaces as 404, detail renders all fields
 
 ### Completed in Phase 4
 - `src/components/card/ConceptForm.tsx` (edit mode) — accepts optional `concept` prop, pre-fills fields, calls `PUT /api/concepts/:id`
 - `src/components/card/ConceptDetail.tsx` (delete flow) — delete confirmation dialog, calls `DELETE /api/concepts/:id`, clears URL on success
 - `src/components/ui/TagInput.tsx` — chip UI, comma/enter to add, backspace to remove, integrated in `ConceptForm`
 - `src/components/sidebar/Sidebar.tsx` (search + topic menu) — debounced search to `GET /api/concepts/search?q=`, topic rename/delete via ellipsis context menu with 409 toast
+- `tests/unit/search.test.ts` — `q`/`tag`/`topic` filter tests, all scoped to `user_id`

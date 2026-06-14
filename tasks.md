@@ -84,7 +84,7 @@ Legend: `[ ]` todo · `[x]` done · `[~]` current phase
 - [x] **`src/app/(app)/page.tsx`** — implement: read `?topic=&concept=` URL params; render `ConceptList` (topic view or all-cards) in main panel; render `ConceptDetail` when `concept` param is set; mobile/desktop master-detail layout with panel switching
 - [x] **`src/components/card/ConceptList.tsx`** — implement: fetch from `GET /api/topics/:id/concepts` or `GET /api/concepts`; render card title rows; click updates URL param `?concept=`; show loading skeleton; show empty state
 - [x] **`src/components/card/ConceptDetail.tsx`** — implement: fetch `GET /api/concepts/:id`; render all fields read-only (title, what_it_does, comparisons table, when_it_breaks, explain_in_30s, where_i_used_it, tags, image full-size); edit + delete buttons in header
-- [ ] **`tests/unit/concept-detail.test.ts`** — tests: 404 returns null (not 403), RLS denial surfaces as 404, detail renders all fields
+- [x] **`tests/unit/concept-detail.test.ts`** — tests: 404 returns null (not 403), RLS denial surfaces as 404, detail renders all fields
 
 ---
 
@@ -97,7 +97,7 @@ Legend: `[ ]` todo · `[x]` done · `[~]` current phase
 - [x] **`src/components/ui/TagInput.tsx`** — new component: comma or enter to add tag, backspace to remove last, renders tag chips; used in `ConceptForm`
 - [x] **Tag filter in sidebar/search** — clicking a tag chip in `ConceptDetail` updates URL and triggers `GET /api/concepts/search?tag=`
 - [x] **Topic rename + delete** — wire PUT/DELETE topic from sidebar context menu (right-click or ellipsis); 409 with concept count shown as toast
-- [ ] **`tests/unit/search.test.ts`** — tests: `q` param filters by title substring, `tag` param filters by exact tag, `topic` param scopes to topic; all scoped to `user_id`
+- [x] **`tests/unit/search.test.ts`** — tests: `q` param filters by title substring, `tag` param filters by exact tag, `topic` param scopes to topic; all scoped to `user_id`
 
 ---
 
