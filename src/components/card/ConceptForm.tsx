@@ -99,6 +99,7 @@ export default function ConceptForm({ concept, defaultTopicId, onSuccess, onCanc
   const [imageExpanded, setImageExpanded] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
 
   const [topics, setTopics] = useState<Topic[]>([]);
@@ -264,6 +265,55 @@ export default function ConceptForm({ concept, defaultTopicId, onSuccess, onCanc
   async function handleFileUpload(file: File) {
     setUploading(true);
     setUploadError(null);
+    setUploadProgress(null);
+
+    const LARGE_FILE_THRESHOLD = 4 * 1024 * 1024;
+
+    if (file.size > LARGE_FILE_THRESHOLD) {
+      try {
+        const signRes = await fetch("/api/uploads/concept-image", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "create-signed-url",
+            concept_id: concept?.id ?? "draft",
+            filename: file.name,
+            mime_type: file.type,
+          }),
+        });
+        const signData = (await signRes.json()) as ApiResult<{ signed_url: string; path: string; url: string }>;
+        if (!signData.ok) {
+          setUploadError(signData.error.message);
+          return;
+        }
+
+        const { signed_url, path, url } = signData.data;
+
+        await new Promise<void>((resolve, reject) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open("PUT", signed_url);
+          xhr.setRequestHeader("Content-Type", file.type);
+          xhr.upload.onprogress = (e) => {
+            if (e.lengthComputable) setUploadProgress(Math.round((e.loaded / e.total) * 100));
+          };
+          xhr.onload = () => {
+            if (xhr.status >= 200 && xhr.status < 300) resolve();
+            else reject(new Error(`Upload failed with status ${xhr.status}`));
+          };
+          xhr.onerror = () => reject(new Error("Network error during upload"));
+          xhr.send(file);
+        });
+
+        setImage({ url, path, uploaded_at: new Date().toISOString() });
+      } catch (err) {
+        setUploadError(err instanceof Error ? err.message : "Upload failed. Please try again.");
+      } finally {
+        setUploading(false);
+        setUploadProgress(null);
+      }
+      return;
+    }
+
     const body = new FormData();
     body.append("file", file);
     body.append("concept_id", concept?.id ?? "draft");
@@ -741,6 +791,17 @@ export default function ConceptForm({ concept, defaultTopicId, onSuccess, onCanc
                   </span>
                   <span className="text-xs text-gray-400">PNG, JPEG, WebP, GIF</span>
                 </div>
+                {uploading && uploadProgress !== null && (
+                  <div className="flex flex-col gap-1">
+                    <div className="h-1.5 w-full rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
+                      <div
+                        className="h-full rounded-full bg-blue-500 transition-all duration-150"
+                        style={{ width: `${uploadProgress}%` }}
+                      />
+                    </div>
+                    <p className="text-xs text-gray-400 text-right">{uploadProgress}%</p>
+                  </div>
+                )}
                 <input
                   ref={fileInputRef}
                   type="file"
