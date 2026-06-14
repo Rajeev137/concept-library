@@ -1,17 +1,17 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
 import type { Concept, UUID } from "@/types";
 
 interface ConceptListProps {
-  topicId: UUID;
-  activeConceptId?: UUID;
-  onConceptClick: (conceptId: UUID) => void;
+  topicId?: string;
+  activeConceptId?: string;
+  onConceptClick: (id: string) => void;
 }
 
-async function fetchConcepts(topicId: UUID): Promise<Concept[]> {
-  const res = await fetch(`/api/topics/${topicId}/concepts`);
+async function fetchConcepts(topicId?: string): Promise<Concept[]> {
+  const url = topicId ? `/api/topics/${topicId}/concepts` : "/api/concepts";
+  const res = await fetch(url);
   if (res.status === 401) throw Object.assign(new Error("Unauthenticated"), { status: 401 });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const body = await res.json();
@@ -30,7 +30,7 @@ export default function ConceptList({ topicId, activeConceptId, onConceptClick }
   const [error, setError] = useState<Error | null>(null);
 
   const scrollRef = useRef<HTMLUListElement>(null);
-  const storageKey = `scroll:topic:${topicId}`;
+  const storageKey = `scroll:topic:${topicId ?? "all"}`;
 
   useEffect(() => {
     let cancelled = false;
@@ -51,7 +51,6 @@ export default function ConceptList({ topicId, activeConceptId, onConceptClick }
     return () => { cancelled = true; };
   }, [topicId]);
 
-  // Restore scroll position after load
   useEffect(() => {
     if (!loading && scrollRef.current) {
       const saved = sessionStorage.getItem(storageKey);
@@ -59,7 +58,6 @@ export default function ConceptList({ topicId, activeConceptId, onConceptClick }
     }
   }, [loading, storageKey]);
 
-  // Persist scroll position on scroll
   const handleScroll = useCallback(() => {
     if (scrollRef.current) {
       sessionStorage.setItem(storageKey, String(scrollRef.current.scrollTop));
@@ -85,7 +83,7 @@ export default function ConceptList({ topicId, activeConceptId, onConceptClick }
   if (concepts.length === 0) {
     return (
       <section aria-label="Concepts" className="px-3 py-6 text-center">
-        <p className="text-sm text-gray-500 dark:text-gray-400">No cards yet.</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400">No concepts yet</p>
       </section>
     );
   }
