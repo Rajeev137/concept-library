@@ -1,21 +1,42 @@
 import type { Session, UploadResponse } from "@/types";
 import { IMAGE_POLICY } from "@/types";
+import { createServiceClient } from "@/lib/supabase/server";
+import { ApiRouteError } from "@/lib/errors";
 
-// TODO: Import and use createServiceClient from @/lib/supabase/server for storage operations.
-// The service-role key is required because Storage RLS allows uploads but the
-// path must be server-validated before the write to prevent path traversal.
+const MAGIC_BYTES: { mime: string; bytes: number[]; offset?: number }[] = [
+  { mime: "image/png",  bytes: [0x89, 0x50, 0x4e, 0x47] },
+  { mime: "image/jpeg", bytes: [0xff, 0xd8, 0xff] },
+  { mime: "image/gif",  bytes: [0x47, 0x49, 0x46] },
+  // WebP: "RIFF" at 0, "WEBP" at 8
+  { mime: "image/webp", bytes: [0x52, 0x49, 0x46, 0x46], offset: 0 },
+];
 
-// TODO: Sanitize a filename per contract: strip path separators (/ \), normalize unicode
-// (NFC), truncate to IMAGE_POLICY.MAX_FILENAME_CHARS. Return the sanitized name.
-export function sanitizeFilename(raw: string): string {
-  // TODO: return raw.replace(/[/\\]/g, "").normalize("NFC").slice(0, IMAGE_POLICY.MAX_FILENAME_CHARS)
-  return raw;
+function sniffMime(buf: Uint8Array): string | null {
+  for (const { mime, bytes, offset = 0 } of MAGIC_BYTES) {
+    if (bytes.every((b, i) => buf[offset + i] === b)) {
+      // Extra check for WebP: bytes 8-11 must be "WEBP"
+      if (mime === "image/webp") {
+        const webp = [0x57, 0x45, 0x42, 0x50];
+        if (!webp.every((b, i) => buf[8 + i] === b)) continue;
+      }
+      return mime;
+    }
+  }
+  return null;
 }
 
-// TODO: Upload an image to Supabase Storage bucket "concept-images" under the path
-// "{session.user_id}/{concept_id}/{sanitized_filename}". Validate MIME against
-// IMAGE_POLICY.ALLOWED_MIME before uploading; throw ApiRouteError(415) on bad type.
-// Return { url, path } where url is the public CDN URL from getPublicUrl().
+export function sanitizeFilename(raw: string): string {
+  const noSeps = raw.replace(/[/\\]/g, "");
+  const normalized = noSeps.normalize("NFC");
+  if (normalized.length <= IMAGE_POLICY.MAX_FILENAME_CHARS) return normalized;
+  // Preserve extension when truncating
+  const dot = normalized.lastIndexOf(".");
+  if (dot === -1) return normalized.slice(0, IMAGE_POLICY.MAX_FILENAME_CHARS);
+  const ext = normalized.slice(dot);
+  const base = normalized.slice(0, IMAGE_POLICY.MAX_FILENAME_CHARS - ext.length);
+  return base + ext;
+}
+
 export async function uploadConceptImage(
   session: Session,
   conceptId: string,
@@ -23,28 +44,49 @@ export async function uploadConceptImage(
   filename: string,
   mimeType: string
 ): Promise<UploadResponse> {
-  // TODO: if (!IMAGE_POLICY.ALLOWED_MIME.includes(mimeType as any)) throw new ApiRouteError("UNSUPPORTED_MEDIA_TYPE", ..., 415)
-  // TODO: const sanitized = sanitizeFilename(filename)
-  // TODO: const path = `${session.user_id}/${conceptId}/${sanitized}`
-  // TODO: const supabase = createServiceClient()
-  // TODO: const { error } = await supabase.storage.from("concept-images").upload(path, file, { contentType: mimeType, upsert: false })
-  // TODO: if (error) throw new ApiRouteError("UPSTREAM_UNAVAILABLE", "Storage upload failed — please retry", 502)
-  // TODO: const { data } = supabase.storage.from("concept-images").getPublicUrl(path)
-  // TODO: return { url: data.publicUrl, path }
-  return { url: "", path: "" };
+  if (!(IMAGE_POLICY.ALLOWED_MIME as readonly string[]).includes(mimeType)) {
+    throw new ApiRouteError("UNSUPPORTED_MEDIA_TYPE", "File type not allowed.", 415);
+  }
+
+  const buf = new Uint8Array(await file.arrayBuffer());
+  const sniffed = sniffMime(buf);
+  if (!sniffed || sniffed !== mimeType) {
+    throw new ApiRouteError("UNSUPPORTED_MEDIA_TYPE", "File content does not match declared type.", 415);
+  }
+
+  const sanitized = sanitizeFilename(filename);
+  const path = `${session.user_id}/${conceptId}/${sanitized}`;
+
+  const supabase = createServiceClient();
+  const { error } = await supabase.storage
+    .from("concept-images")
+    .upload(path, file, { contentType: mimeType, upsert: false });
+
+  if (error) {
+    throw new ApiRouteError("UPSTREAM_UNAVAILABLE", "Storage upload failed — please retry.", 502);
+  }
+
+  const { data } = supabase.storage.from("concept-images").getPublicUrl(path);
+  return { url: data.publicUrl, path };
 }
 
-// TODO: Delete an image from Supabase Storage by path. Validate that the path's first
-// segment matches session.user_id to prevent cross-user deletion before calling remove().
-// Throw ApiRouteError(403→404) if path does not belong to the session user.
 export async function deleteConceptImage(
   session: Session,
   path: string
 ): Promise<{ ok: true }> {
-  // TODO: const [ownerId] = path.split("/")
-  // TODO: if (ownerId !== session.user_id) throw new ApiRouteError("NOT_FOUND", "Not found", 404)
-  // TODO: const supabase = createServiceClient()
-  // TODO: const { error } = await supabase.storage.from("concept-images").remove([path])
-  // TODO: if (error) throw new ApiRouteError("UPSTREAM_UNAVAILABLE", "Storage delete failed — please retry", 502)
+  const [ownerId] = path.split("/");
+  if (ownerId !== session.user_id) {
+    throw new ApiRouteError("NOT_FOUND", "Not found.", 404);
+  }
+
+  const supabase = createServiceClient();
+  const { error } = await supabase.storage
+    .from("concept-images")
+    .remove([path]);
+
+  if (error) {
+    throw new ApiRouteError("UPSTREAM_UNAVAILABLE", "Storage delete failed — please retry.", 502);
+  }
+
   return { ok: true };
 }
