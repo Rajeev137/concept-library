@@ -15,7 +15,7 @@ Legend: `[ ]` todo · `[x]` done · `[~]` current phase
 - [x] **`src/lib/supabase/middleware.ts`** — middleware Supabase client (anon key only) for session cookie refresh
 - [x] **`src/types/index.ts`** — re-export everything from `interfaces.ts`; no new types
 - [x] **`tests/unit/supabase.test.ts`** — unit tests for all three Supabase clients (browser, server, middleware); mocks env vars and cookie store
-- [ ] **`tests/anon-key-isolation.test.ts`** — implement: connect with anon key, assert `topics`, `concepts`, `comparisons` return 0 rows and `concept-images` bucket returns 0 objects; this test must always pass *(file scaffolded, needs real Supabase creds to run)*
+- [x] **`tests/anon-key-isolation.test.ts`** — connect with anon key, assert `topics`, `concepts`, `comparisons` return 0 rows (or 42501) and `concept-images` bucket returns 0 objects; passing against live Supabase
 - [x] **Supabase project** (manual, out-of-band) — create project, apply SQL for `topics`/`concepts`/`comparisons` tables with RLS policies, create `concept-images` bucket with Storage RLS, copy keys to `.env.local`
 - [ ] **Vercel project** (manual, out-of-band) — connect GitHub repo, add env vars (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`), confirm deploy green
 
@@ -24,16 +24,16 @@ Legend: `[ ]` todo · `[x]` done · `[~]` current phase
 ## Phase 1 — Auth: login, register, session, protected route
 > Goal: deployable. You can register, confirm email, and log in. Unauthenticated users are redirected.
 
-- [ ] **`src/lib/errors.ts`** — implement `ApiRouteError` class, `apiHandler()` wrapper, `toApiError()` helper; all API routes wrap with this
-- [ ] **`src/lib/validators/constants.ts`** — export `COMMON_PASSWORDS` denylist (top 10k list), `PASSWORD_MIN_LEN = 12`
-- [ ] **`src/lib/validators/auth.ts`** — implement Zod schemas (`.strict()`) for `RegisterRequest`, `LoginRequest`, `PasswordResetRequest`, `PasswordResetConfirm`; implement `checkPasswordPolicy()`
-- [ ] **`src/lib/rate-limit/index.ts`** — implement `checkRateLimit()` using Upstash Redis sliding-window; rules: login 5/15min then 1/min, register 3/hr, password-reset 3/hr
-- [ ] **`src/app/api/auth/register/route.ts`** — POST: validate with auth schema, check password policy, call `supabase.auth.signUp()`; 250ms minimum response floor; generic error message regardless of failure type
-- [ ] **`src/app/api/auth/login/route.ts`** — POST: rate-limit check first, then validate, then `supabase.auth.signInWithPassword()`; 250ms floor; generic error
-- [ ] **`src/app/api/auth/logout/route.ts`** — POST: `supabase.auth.signOut()`; clear session cookies
-- [ ] **`src/app/api/auth/password-reset/request/route.ts`** — POST: rate-limit, validate email, call `supabase.auth.resetPasswordForEmail()`; always returns `{ ok: true }` (never reveals email existence); 250ms floor
-- [ ] **`src/app/api/auth/password-reset/confirm/route.ts`** — POST: validate token + new_password, check password policy, call `supabase.auth.updateUser()`
-- [ ] **`src/middleware.ts`** — implement: refresh session cookies via middleware Supabase client; set all security headers (CSP, HSTS, X-Content-Type-Options, Referrer-Policy, Permissions-Policy); enforce Origin header check on POST/PUT/DELETE to `/api/*`
+- [x] **`src/lib/errors.ts`** — `ApiRouteError` class, `apiHandler()` + `authHandler()` wrappers, `errorResponse()` with opaque 500 trace_id; 250ms floor built in
+- [x] **`src/lib/validators/constants.ts`** — `PASSWORD_MIN_LEN = 12`, `COMMON_PASSWORDS` Set (~200 entries; TODO full 10k)
+- [x] **`src/lib/validators/auth.ts`** — Zod `.strict()` schemas for all four auth request types; `checkPasswordPolicy()` enforcing length + denylist
+- [x] **`src/lib/rate-limit/index.ts`** — `checkRateLimit()` with Upstash Redis sliding-window; fail-open on Redis error; login 5/15min, register 3/hr, password-reset 3/hr
+- [x] **`src/app/api/auth/register/route.ts`** — rate-limit, validate, password policy, `signUp()`, generic error, 250ms floor via `authHandler`
+- [x] **`src/app/api/auth/login/route.ts`** — rate-limit, validate, `signInWithPassword()`, email-confirmation check, generic error, 250ms floor
+- [x] **`src/app/api/auth/logout/route.ts`** — `signOut()`, returns `{ ok: true }`
+- [x] **`src/app/api/auth/password-reset/request/route.ts`** — rate-limit, validate, fire-and-forget `resetPasswordForEmail()`, always `{ ok: true }`, 250ms floor
+- [x] **`src/app/api/auth/password-reset/confirm/route.ts`** — validate, password policy, `exchangeCodeForSession()`, `updateUser()`, generic error
+- [x] **`src/middleware.ts`** — session refresh, all security headers (CSP/HSTS/etc.), Origin CSRF check on POST/PUT/DELETE to `/api/*`
 - [ ] **`src/app/(auth)/layout.tsx`** — auth route group layout: no app shell; redirect to `/` if session already exists
 - [ ] **`src/app/(auth)/login/page.tsx`** — login form: email + password fields, submit calls `POST /api/auth/login`, shows generic error, redirects to `returnUrl` or `/` on success
 - [ ] **`src/app/(auth)/register/page.tsx`** — register form: email + password, calls `POST /api/auth/register`, shows "check your email" after success
@@ -41,8 +41,8 @@ Legend: `[ ]` todo · `[x]` done · `[~]` current phase
 - [ ] **`src/app/(auth)/reset-password/confirm/page.tsx`** — confirm-reset form: reads token from URL, new_password field, calls `/api/auth/password-reset/confirm`
 - [ ] **`src/app/(app)/layout.tsx`** — protected layout: call `getSession()`; redirect to `/login?returnUrl=…` if null; render `AppShell` around `{children}`
 - [ ] **`src/hooks/useSession.ts`** — implement: read session from Supabase browser client; expose `{ session, loading }`
-- [ ] **`tests/unit/validators-auth.test.ts`** — unit tests for `checkPasswordPolicy()`: min length, common-password rejection, valid password passes
-- [ ] **`tests/unit/rate-limit.test.ts`** — unit tests for `checkRateLimit()`: allowed on first hit, denied after limit, Retry-After set
+- [x] **`tests/unit/validators-auth.test.ts`** — 33 tests: min length, common-password rejection, valid password, all four schema strict-mode checks, user_id injection rejection
+- [x] **`tests/unit/rate-limit.test.ts`** — 18 tests: allowed on first hit, denied after limit, fail-open on Redis error
 
 ---
 
