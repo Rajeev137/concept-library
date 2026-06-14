@@ -4,25 +4,42 @@ import { apiHandler, ApiRouteError } from "@/lib/errors";
 import { passwordResetConfirmSchema, checkPasswordPolicy } from "@/lib/validators/auth";
 import { createClient } from "@/lib/supabase/server";
 
-// POST /api/auth/password-reset/confirm
-// Body: { token, new_password }
-// Response: ApiResult<{ ok: true }>
-// Token is single-use, <= 30 min lifetime (enforced by Supabase).
-// new_password must pass password policy (>= 12 chars, not in common list).
-// Generic error on invalid/expired token — no token-vs-password distinction.
+const GENERIC_TOKEN_ERROR = "Invalid or expired reset link.";
+
 export const POST = apiHandler(async (request: NextRequest) => {
-  // TODO: parse and validate body with passwordResetConfirmSchema; throw 422 on failure
+  const body = await request.json().catch(() => null);
+  const parsed = passwordResetConfirmSchema.safeParse(body);
+  if (!parsed.success) {
+    throw new ApiRouteError(
+      "VALIDATION",
+      "Invalid request.",
+      422,
+      parsed.error.errors.map((e) => ({
+        field: e.path.join("."),
+        message: e.message,
+      }))
+    );
+  }
 
-  // TODO: check password policy via checkPasswordPolicy(body.new_password); throw 400 on failure
+  const policy = checkPasswordPolicy(parsed.data.new_password);
+  if (!policy.ok) {
+    throw new ApiRouteError("VALIDATION", "Password does not meet requirements.", 422, policy.errors);
+  }
 
-  // TODO: exchange the token for a session using supabase.auth.exchangeCodeForSession(body.token)
-  // (or verifyOtp depending on Supabase flow used — pick one consistent with request/confirm pair)
-  // On error: return generic ApiRouteError("AUTH_FAILED", "Invalid or expired reset link.", 400)
+  const supabase = await createClient();
 
-  // TODO: update password using supabase.auth.updateUser({ password: body.new_password })
+  // Exchange the OTP token for a session so we can call updateUser
+  const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(parsed.data.token);
+  if (exchangeError) {
+    throw new ApiRouteError("AUTH_FAILED", GENERIC_TOKEN_ERROR, 400);
+  }
 
-  // TODO: invalidate the token (Supabase handles single-use automatically)
+  const { error: updateError } = await supabase.auth.updateUser({
+    password: parsed.data.new_password,
+  });
+  if (updateError) {
+    throw new ApiRouteError("AUTH_FAILED", GENERIC_TOKEN_ERROR, 400);
+  }
 
-  // TODO: return NextResponse.json({ ok: true, data: { ok: true } })
-  return NextResponse.json({ ok: true, data: { ok: true } });
+  return NextResponse.json<ApiResult<{ ok: true }>>({ ok: true, data: { ok: true } });
 });

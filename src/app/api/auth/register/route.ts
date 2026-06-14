@@ -1,36 +1,58 @@
 import { NextRequest, NextResponse } from "next/server";
 import type { ApiResult, Session } from "@/types";
-import { apiHandler, ApiRouteError } from "@/lib/errors";
+import { authHandler, ApiRouteError } from "@/lib/errors";
 import { checkRateLimit, getClientIp, RATE_LIMIT_RULES } from "@/lib/rate-limit";
 import { registerSchema, checkPasswordPolicy } from "@/lib/validators/auth";
 import { createClient } from "@/lib/supabase/server";
 
-// POST /api/auth/register
-// Body: { email, password }
-// Response: ApiResult<{ session: Session }>
-// Rate limit: 3 / hour per IP (RATE_LIMIT_RULES.register)
-// Password: >= 12 chars, not in common-passwords denylist
-// Email confirmation required before first login
-// Response must be uniform on error (no "email already registered" distinction)
-// Minimum response time: 250ms to prevent timing attacks / email enumeration
-export const POST = apiHandler(async (request: NextRequest) => {
-  // TODO: enforce minimum response time of 250ms (start timer at top, sleep remainder before returning)
+const GENERIC_ERROR = "Registration failed. Please try again.";
 
-  // TODO: check rate limit — throw ApiRouteError("RATE_LIMITED", ..., 429) with Retry-After if exceeded
+export const POST = authHandler(async (request: NextRequest) => {
   const ip = getClientIp(request);
-  // const rl = await checkRateLimit(RATE_LIMIT_RULES.register, ip)
-  // if (!rl.allowed) throw new ApiRouteError("RATE_LIMITED", "Too many registration attempts. Try again later.", 429)
+  const rl = await checkRateLimit(RATE_LIMIT_RULES.register, ip);
+  if (!rl.allowed) {
+    throw new ApiRouteError("RATE_LIMITED", "Too many registration attempts. Try again later.", 429);
+  }
 
-  // TODO: parse and validate body with registerSchema.strict().safeParse(await request.json())
-  // throw ApiRouteError("VALIDATION", ..., 422) on schema failure
+  const body = await request.json().catch(() => null);
+  const parsed = registerSchema.safeParse(body);
+  if (!parsed.success) {
+    throw new ApiRouteError(
+      "VALIDATION",
+      "Invalid request.",
+      422,
+      parsed.error.errors.map((e) => ({
+        field: e.path.join("."),
+        message: e.message,
+      }))
+    );
+  }
 
-  // TODO: check password policy via checkPasswordPolicy(body.password)
-  // throw ApiRouteError("AUTH_FAILED", "Password does not meet requirements.", 400) on failure
+  const policy = checkPasswordPolicy(parsed.data.password);
+  if (!policy.ok) {
+    throw new ApiRouteError("AUTH_FAILED", GENERIC_ERROR, 400);
+  }
 
-  // TODO: call supabase.auth.signUp({ email, password, options: { emailRedirectTo: ... } })
-  // TODO: on Supabase error, return generic ApiRouteError("AUTH_FAILED", "Registration failed.", 400)
-  // — NEVER distinguish "email already exists" from other errors
+  const supabase = await createClient();
+  const { data, error } = await supabase.auth.signUp({
+    email: parsed.data.email,
+    password: parsed.data.password,
+  });
 
-  // TODO: return NextResponse.json({ ok: true, data: { session } }, { status: 201 })
-  return NextResponse.json({ ok: true, data: null }, { status: 201 });
+  if (error || !data.session) {
+    // Never distinguish "email already registered" from other errors
+    throw new ApiRouteError("AUTH_FAILED", GENERIC_ERROR, 400);
+  }
+
+  const session: Session = {
+    user_id: data.session.user.id,
+    email: data.session.user.email!,
+    access_token: data.session.access_token,
+    expires_at: new Date(data.session.expires_at! * 1000).toISOString(),
+  };
+
+  return NextResponse.json<ApiResult<{ session: Session }>>(
+    { ok: true, data: { session } },
+    { status: 201 }
+  );
 });
