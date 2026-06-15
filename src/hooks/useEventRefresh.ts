@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import type { UUID } from "@/types";
 import type { ConceptSavedDetail, ConceptDeletedDetail } from "@/lib/events";
 
@@ -26,4 +26,20 @@ export function useEventRefresh({ onConceptSaved, onConceptDeleted }: UseEventRe
       window.removeEventListener("concept:deleted", handleDeleted);
     };
   }, [onConceptSaved, onConceptDeleted]);
+}
+
+// Simpler hook for components that just need to re-run a callback on any concept mutation.
+// Uses a ref so the latest fn is always called — no stale closure risk.
+export function useConceptEventRefresh(fn: () => void) {
+  const fnRef = useRef(fn);
+  fnRef.current = fn;
+  useEffect(() => {
+    const handler = () => fnRef.current();
+    window.addEventListener("concept:saved", handler);
+    window.addEventListener("concept:deleted", handler);
+    return () => {
+      window.removeEventListener("concept:saved", handler);
+      window.removeEventListener("concept:deleted", handler);
+    };
+  }, []);
 }
