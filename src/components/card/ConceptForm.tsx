@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState, useEffect, useRef, useCallback } from "react";
 import type {
   Concept,
@@ -741,12 +742,14 @@ export default function ConceptForm({ concept, defaultTopicId, onSuccess, onCanc
           <div className="px-3 pb-3 flex flex-col gap-3">
             {image ? (
               <div className="flex items-start gap-3">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={image.url}
-                  alt="Uploaded concept image"
-                  className="h-24 w-auto rounded-md border border-gray-200 dark:border-gray-700 object-cover"
-                />
+                <div className="relative h-24 w-32 shrink-0 rounded-md border border-gray-200 dark:border-gray-700 overflow-hidden">
+                  <Image
+                    src={image.url}
+                    alt="Uploaded concept image"
+                    fill
+                    className="object-cover"
+                  />
+                </div>
                 <button
                   type="button"
                   onClick={removeImage}
