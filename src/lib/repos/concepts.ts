@@ -102,8 +102,9 @@ export async function createConcept(session: Session, input: ConceptInput): Prom
     const { error: copyError } = await storage.copy(draftPath, finalPath);
     if (!copyError) {
       await storage.remove([draftPath]);
-      const { data: publicData } = storage.getPublicUrl(finalPath);
-      finalImage = { ...input.image, path: finalPath, url: publicData.publicUrl };
+      const { data: signedData, error: signedUrlError } = await storage.createSignedUrl(finalPath, 31536000);
+      const finalUrl = (!signedUrlError && signedData) ? signedData.signedUrl : input.image.url;
+      finalImage = { ...input.image, path: finalPath, url: finalUrl };
       await supabase
         .from("concepts")
         .update({ image: finalImage })

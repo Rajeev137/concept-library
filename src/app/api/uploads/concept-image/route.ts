@@ -51,9 +51,14 @@ export const POST = apiHandler(async (request: NextRequest) => {
       throw new ApiRouteError("UPSTREAM_UNAVAILABLE", "Could not create signed URL — please retry.", 502);
     }
 
-    const { data: publicData } = supabase.storage.from("concept-images").getPublicUrl(path);
+    const { data: readUrlData, error: readUrlError } = await supabase.storage
+      .from("concept-images")
+      .createSignedUrl(path, 31536000);
+    if (readUrlError || !readUrlData) {
+      throw new ApiRouteError("UPSTREAM_UNAVAILABLE", "Could not generate image URL.", 502);
+    }
     return NextResponse.json<ApiResult<{ signed_url: string; path: string; url: string }>>(
-      { ok: true, data: { signed_url: data.signedUrl, path, url: publicData.publicUrl } },
+      { ok: true, data: { signed_url: data.signedUrl, path, url: readUrlData.signedUrl } },
       { status: 201 }
     );
   }

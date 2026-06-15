@@ -66,8 +66,13 @@ export async function uploadConceptImage(
     throw new ApiRouteError("UPSTREAM_UNAVAILABLE", "Storage upload failed — please retry.", 502);
   }
 
-  const { data } = supabase.storage.from("concept-images").getPublicUrl(path);
-  return { url: data.publicUrl, path };
+  const { data: signedData, error: signedError } = await supabase.storage
+    .from("concept-images")
+    .createSignedUrl(path, 31536000);
+  if (signedError || !signedData) {
+    throw new ApiRouteError("UPSTREAM_UNAVAILABLE", "Could not generate image URL.", 502);
+  }
+  return { url: signedData.signedUrl, path };
 }
 
 export async function deleteConceptImage(
