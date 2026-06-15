@@ -196,6 +196,7 @@ export default function TopicRow({
                 className="absolute right-0 top-full mt-1 z-20 w-32 rounded-md shadow-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 py-1"
                 role="menu"
                 aria-label={`Options for ${topic.name}`}
+                data-topic-menu="true"
               >
                 <button
                   type="button"
