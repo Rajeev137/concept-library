@@ -83,6 +83,7 @@ export default function Sidebar({ collapsed, onCollapsedChange, isMobileDrawer, 
   const handleConceptSavedEvent = useCallback((topicId: UUID) => {
     reloadTopics();
     setExpandedTopicIds((prev) => prev.includes(topicId) ? prev : [...prev, topicId]);
+    loadingTopics.current.delete(topicId);
     setConceptsCache((prev) => {
       const next = { ...prev };
       delete next[topicId];
@@ -92,6 +93,7 @@ export default function Sidebar({ collapsed, onCollapsedChange, isMobileDrawer, 
 
   const handleConceptDeletedEvent = useCallback((topicId: UUID) => {
     reloadTopics();
+    loadingTopics.current.delete(topicId);
     setConceptsCache((prev) => {
       const next = { ...prev };
       delete next[topicId];
@@ -189,9 +191,10 @@ export default function Sidebar({ collapsed, onCollapsedChange, isMobileDrawer, 
 
   useEffect(() => {
     expandedTopicIds.forEach((id) => loadConceptsForTopic(id));
-  // intentionally run only when expandedTopicIds changes, not loadConceptsForTopic
+  // conceptsCache is included so that clearing a cache entry (on save/delete) triggers
+  // a re-fetch; loadConceptsForTopic's own guard prevents infinite loops.
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [expandedTopicIds]);
+  }, [expandedTopicIds, conceptsCache]);
 
   const handleConceptClick = useCallback((topicId: UUID, conceptId: UUID) => {
     router.push(`?topic=${topicId}&concept=${conceptId}`);
