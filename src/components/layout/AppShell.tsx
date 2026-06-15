@@ -4,6 +4,7 @@ import { useState, useEffect, type ReactNode } from "react";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import Sidebar from "@/components/sidebar/Sidebar";
 import OfflineBanner from "@/components/ui/OfflineBanner";
+import AddCardButton from "@/components/card/AddCardButton";
 
 interface AppShellProps {
   children: ReactNode;
@@ -86,6 +87,8 @@ export default function AppShell({ children }: AppShellProps) {
           {children}
         </main>
       </div>
+
+      <AddCardButton />
     </div>
   );
 }
