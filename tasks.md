@@ -11,12 +11,12 @@ Legend: `[ ]` todo · `[x]` done · `[~]` current phase
 - [x] **`src/app/layout.tsx`** — root layout: set `<html lang="en">`, import `globals.css`, no auth logic yet
 - [x] **`src/app/(app)/page.tsx`** — placeholder hello page ("Concept Library — coming soon") so Vercel deploy succeeds
 - [x] **`src/lib/supabase/client.ts`** — browser Supabase client using `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_ANON_KEY` via `createBrowserClient` from `@supabase/ssr`
-- [x] **`src/lib/supabase/server.ts`** — server Supabase client (service-role) using `createServerClient` from `@supabase/ssr`; reads cookies from Next.js headers
+- [x] **`src/lib/supabase/server.ts`** — server Supabase client (anon key + user session cookies) using `createServerClient` from `@supabase/ssr`; reads cookies from Next.js headers so RLS sees `auth.uid()`
 - [x] **`src/lib/supabase/middleware.ts`** — middleware Supabase client (anon key only) for session cookie refresh
 - [x] **`src/types/index.ts`** — re-export everything from `interfaces.ts`; no new types
 - [x] **`tests/unit/supabase.test.ts`** — unit tests for all three Supabase clients (browser, server, middleware); mocks env vars and cookie store
 - [x] **`tests/anon-key-isolation.test.ts`** — connect with anon key, assert `topics`, `concepts`, `comparisons` return 0 rows (or 42501) and `concept-images` bucket returns 0 objects; passing against live Supabase
-- [x] **Supabase project** (manual, out-of-band) — create project, apply SQL for `topics`/`concepts`/`comparisons` tables with RLS policies, create `concept-images` bucket with Storage RLS, copy keys to `.env.local`
+- [x] **Supabase project** (manual, out-of-band) — create project, apply SQL for `topics`/`concepts`/`comparisons` tables with RLS policies, create `concept-images` bucket (private) with Storage RLS restricting SELECT to `auth.uid() = foldername[1]`, copy keys to `.env.local`
 - [ ] **Vercel project** (manual, out-of-band) — connect GitHub repo, add env vars (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`), confirm deploy green
 
 ---
@@ -61,7 +61,7 @@ Legend: `[ ]` todo · `[x]` done · `[~]` current phase
 - [x] **`src/app/api/uploads/concept-image/route.ts`** — POST: `requireUser`, parse multipart, call `uploadConceptImage()`; return `{ url, path }`; 415 on bad MIME; DELETE: validate `{ path }`, verify path starts with `session.user_id`, call `deleteConceptImage()`
 - [x] **`src/components/layout/ThemeProvider.tsx`** — implement: read `ui:theme` from localStorage on mount, apply `dark` class to `<html>`, listen to `prefers-color-scheme` when value is `system`
 - [x] **`src/hooks/useLocalStorage.ts`** — implement generic `useLocalStorage<T>(key, defaultValue)` hook with SSR-safe read
-- [x] **`src/components/layout/AppShell.tsx`** — implement layout: sidebar on left, main panel on right; pass sidebar collapsed state down; render `<OfflineBanner />` at top
+- [x] **`src/components/layout/AppShell.tsx`** — implement layout: sidebar on left, main panel on right; pass sidebar collapsed state down; render `<OfflineBanner />` at top; mobile drawer wired up
 - [x] **`src/components/sidebar/Sidebar.tsx`** — implement: topic list from `GET /api/topics`, search box filtering titles, collapse/expand per topic (persisted via `ui:expanded-topics`), collapse-to-rail toggle (persisted via `ui:sidebar`), theme toggle at footer
 - [x] **`src/components/sidebar/TopicRow.tsx`** — implement: topic name + concept count chip; expand/collapse to show concept titles; click concept title triggers URL update
 - [x] **`src/components/ui/ThemeToggle.tsx`** — implement: cycle light→dark→system, write to `ui:theme`
@@ -98,16 +98,19 @@ Legend: `[ ]` todo · `[x]` done · `[~]` current phase
 - [x] **Tag filter in sidebar/search** — clicking a tag chip in `ConceptDetail` updates URL and triggers `GET /api/concepts/search?tag=`
 - [x] **Topic rename + delete** — wire PUT/DELETE topic from sidebar context menu (right-click or ellipsis); 409 with concept count shown as toast
 - [x] **`tests/unit/search.test.ts`** — tests: `q` param filters by title substring, `tag` param filters by exact tag, `topic` param scopes to topic; all scoped to `user_id`
+- [x] **`tests/unit/concept-crud-api.test.ts`** — tests for GET/PUT/DELETE `/api/concepts/:id`
 
 ---
 
 ## Phase 5 — Polish: mobile layout, keyboard shortcuts, offline draft
 > Goal: production-ready. Mobile-usable. Keyboard-navigable. Offline draft preserved.
 
-- [ ] **Mobile sidebar drawer** — on viewport < 768px, sidebar becomes overlay drawer; toggle via hamburger button; close on outside click or Escape
-- [ ] **Keyboard shortcuts** — `N` opens new card form, `E` opens edit for focused card, `Delete`/`Backspace` triggers delete confirmation, `Escape` closes form/drawer, `/` focuses sidebar search; document shortcuts in a help modal (`?`)
-- [ ] **Offline draft resilience** — `OfflineBanner` already shows; add logic in `ConceptForm` to detect 503/network failure and keep draft alive; auto-retry submit on reconnect
-- [ ] **`src/components/card/ConceptForm.tsx`** (large file upload) — for files > 4MB, switch to signed-URL direct upload: call `/api/uploads/concept-image` with `concept_id=draft`, receive signed URL, upload directly from browser to Supabase Storage; claim path on concept save
-- [ ] **Scroll restoration** — on concept/topic navigation, save `window.scrollY` to `sessionStorage` key `scroll:topic:{topicId}`; restore on back-navigation
-- [ ] **`tests/e2e/`** — Playwright: register → confirm email (via Supabase test hook) → login → create topic + card → view card → edit → delete → logout; assert anon redirect to `/login`
+- [x] **Mobile sidebar drawer** — on viewport < 768px, sidebar becomes overlay drawer (`AppShell.tsx`); hamburger button in top header; `Sidebar` accepts `isMobileDrawer` + `onClose` props; Escape closes drawer
+- [x] **Keyboard shortcuts** — `useKeyboardShortcuts` hook (`src/hooks/useKeyboardShortcuts.ts`): N new card, E edit, Delete/Backspace delete confirm, Escape close, `/` focus search, `?` open help modal; `KeyboardShortcutsHelp` modal (`src/components/ui/KeyboardShortcutsHelp.tsx`); wired in `page.tsx`
+- [x] **Offline draft resilience** — `ConceptForm` detects 503/network failure, keeps draft alive, shows "Back online — tap to retry" toast; auto-retry on reconnect
+- [x] **`src/components/card/ConceptForm.tsx`** (large file upload) — files > 4MB use signed-URL direct upload: call `/api/uploads/concept-image` with `action=create-signed-url`, receive signed URL, PUT directly to Supabase Storage from browser
+- [x] **`src/hooks/useScrollRestoration.ts`** — hook implemented: saves `scrollY` to `sessionStorage` key `scroll:{key}` on scroll (debounced 200ms) and on unmount; restores on mount via `requestAnimationFrame`
+- [ ] **Scroll restoration wired** — `useScrollRestoration` is not yet called anywhere in `ConceptList` or `page.tsx`; needs to be added with key `topic:{topicId}`
+- [x] **`tests/e2e/full-flow.spec.ts`** — Playwright: creates test user via admin API, login → create topic + card → view → edit → delete → logout; asserts anon redirect to `/login`
+- [x] **`tests/e2e/anon-access.spec.ts`** — Playwright: unauthenticated `/` redirects to `/login`; unauthenticated `GET /api/concepts` returns 401
 - [ ] **Pre-launch smoke tests** — from `security.md`: verify HSTS header present, CSP present, service-role key not in client bundle (`grep` on `.next/`), anon key isolation test passes in CI against production Supabase
