@@ -15,6 +15,7 @@ import type {
 import { useDraftConcept } from "@/hooks/useDraftConcept";
 import { validateConcept } from "@/lib/validators/concept";
 import TagInput from "@/components/ui/TagInput";
+import { emitConceptSaved } from "@/lib/events";
 
 interface ConceptFormProps {
   concept?: Concept;
@@ -396,6 +397,7 @@ export default function ConceptForm({ concept, defaultTopicId, onSuccess, onCanc
         return;
       }
       clearDraft();
+      emitConceptSaved({ concept_id: data.data.id, topic_id: data.data.topic_id });
       onSuccess(data.data);
     } catch {
       pendingInputRef.current = input;
@@ -431,6 +433,7 @@ export default function ConceptForm({ concept, defaultTopicId, onSuccess, onCanc
       }
       pendingInputRef.current = null;
       clearDraft();
+      emitConceptSaved({ concept_id: data.data.id, topic_id: data.data.topic_id });
       onSuccess(data.data);
     } catch {
       setOfflineRetry(true);

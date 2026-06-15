@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import type { Topic, Concept, UUID } from "@/types";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useSession } from "@/hooks/useSession";
+import { useEventRefresh } from "@/hooks/useEventRefresh";
 import TopicRow from "./TopicRow";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 
@@ -78,6 +79,30 @@ export default function Sidebar({ collapsed, onCollapsedChange, isMobileDrawer, 
 
   const [expandedTopicIds, setExpandedTopicIds] = useLocalStorage<UUID[]>("ui:expanded-topics", []);
   const [conceptsCache, setConceptsCache] = useState<Record<UUID, Concept[]>>({});
+
+  const handleConceptSavedEvent = useCallback((topicId: UUID) => {
+    reloadTopics();
+    setExpandedTopicIds((prev) => prev.includes(topicId) ? prev : [...prev, topicId]);
+    setConceptsCache((prev) => {
+      const next = { ...prev };
+      delete next[topicId];
+      return next;
+    });
+  }, [reloadTopics, setExpandedTopicIds]);
+
+  const handleConceptDeletedEvent = useCallback((topicId: UUID) => {
+    reloadTopics();
+    setConceptsCache((prev) => {
+      const next = { ...prev };
+      delete next[topicId];
+      return next;
+    });
+  }, [reloadTopics]);
+
+  useEventRefresh({
+    onConceptSaved: handleConceptSavedEvent,
+    onConceptDeleted: handleConceptDeletedEvent,
+  });
   const loadingTopics = useRef<Set<UUID>>(new Set());
 
   // Search state
