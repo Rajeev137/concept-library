@@ -177,10 +177,13 @@ export default function Sidebar({ collapsed, onCollapsedChange, isMobileDrawer, 
     handleConceptClick(concept.topic_id, concept.id);
   }, [handleConceptClick]);
 
-  // Close menu when clicking outside
+  // Close menu when clicking outside; ignore clicks inside the dropdown itself
   useEffect(() => {
     if (!openMenuTopicId) return;
-    const handler = () => setOpenMenuTopicId(null);
+    const handler = (e: MouseEvent) => {
+      if ((e.target as Element).closest("[data-topic-menu]")) return;
+      setOpenMenuTopicId(null);
+    };
     document.addEventListener("click", handler, true);
     return () => document.removeEventListener("click", handler, true);
   }, [openMenuTopicId]);
