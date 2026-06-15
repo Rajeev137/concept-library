@@ -1,5 +1,5 @@
 import type { Session, Concept, ConceptInput, UUID } from "@/types";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { ApiRouteError } from "@/lib/errors";
 import { validateConcept } from "@/lib/validators/concept";
 import { findTopicByName, createTopic } from "@/lib/repos/topics";
@@ -90,6 +90,27 @@ export async function createConcept(session: Session, input: ConceptInput): Prom
     .select()
     .single();
   if (conceptError) throw mapSupabaseError(conceptError);
+
+  // Move draft image to the final path now that we have the real concept_id
+  let finalImage = input.image ?? null;
+  if (input.image && input.image.path.includes(`/${session.user_id}/draft/`)) {
+    const draftPath = input.image.path;
+    const filename = draftPath.split("/").pop()!;
+    const finalPath = `${session.user_id}/${concept.id}/${filename}`;
+
+    const storage = createServiceClient().storage.from("concept-images");
+    const { error: copyError } = await storage.copy(draftPath, finalPath);
+    if (!copyError) {
+      await storage.remove([draftPath]);
+      const { data: publicData } = storage.getPublicUrl(finalPath);
+      finalImage = { ...input.image, path: finalPath, url: publicData.publicUrl };
+      await supabase
+        .from("concepts")
+        .update({ image: finalImage })
+        .eq("id", concept.id)
+        .eq("user_id", session.user_id);
+    }
+  }
 
   if (input.comparisons.length > 0) {
     const rows = input.comparisons.map((c) => ({
