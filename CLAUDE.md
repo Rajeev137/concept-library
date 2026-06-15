@@ -134,15 +134,20 @@ These are the things most likely to cause a cross-user data leak if broken. Chec
 | Phase 2 — Schema, create-concept form, POST endpoint | Done |
 | Phase 3 — List and detail view | Done |
 | Phase 4 — Edit, delete, search, tags | Done |
-| Phase 5 — Polish, mobile, keyboard, offline | Not started |
+| Phase 5 — Polish, mobile, keyboard, offline | In progress (2 items remaining) |
 
-### Completed in Phase 3
-- `src/components/card/ConceptList.tsx` — fetches topic concepts, skeleton, empty state, scroll restore, active highlight
-- `src/components/card/ConceptDetail.tsx` — full read-only render, edit via `ConceptForm`, delete with confirm, 401/404 handling
-- `src/app/api/concepts/[id]/route.ts` — GET/PUT/DELETE with `requireUser`, 404 on missing/unauthorized
-- `src/app/api/concepts/search/route.ts` — GET with `?q=&tag=&topic=` filters, scoped to session user
-- `src/app/(app)/page.tsx` — master-detail layout, URL-driven panel state (`?topic=&concept=`), mobile/desktop responsive, add-card flow
-- `tests/unit/concept-detail.test.ts` — 404 returns null (not 403), RLS denial surfaces as 404, detail renders all fields
+### Completed in Phase 5
+- `src/components/layout/AppShell.tsx` — mobile sidebar drawer via `useIsMobile`; hamburger header; `Sidebar` receives `isMobileDrawer` + `onClose`; Escape closes drawer
+- `src/hooks/useKeyboardShortcuts.ts` — N/E/Delete/Escape/`/`/`?` shortcuts; skips when focus is in an input/textarea
+- `src/components/ui/KeyboardShortcutsHelp.tsx` — modal with shortcut table; Escape closes; wired in `page.tsx`
+- `src/components/card/ConceptForm.tsx` (offline + large upload) — 503 keeps draft alive, "Back online — tap to retry" toast; files >4MB use signed-URL direct upload
+- `src/hooks/useScrollRestoration.ts` — saves/restores `scrollY` via `sessionStorage`; hook implemented but **not yet wired** into `ConceptList`
+- `tests/e2e/full-flow.spec.ts` — Playwright full CRUD flow with admin-API user setup/teardown
+- `tests/e2e/anon-access.spec.ts` — anon redirect and 401 checks
+
+### Remaining in Phase 5
+- Wire `useScrollRestoration` into `ConceptList` with key `topic:{topicId}`
+- Pre-launch smoke tests (HSTS/CSP header check, service-role key not in `.next/` bundle)
 
 ### Completed in Phase 4
 - `src/components/card/ConceptForm.tsx` (edit mode) — accepts optional `concept` prop, pre-fills fields, calls `PUT /api/concepts/:id`
@@ -150,3 +155,4 @@ These are the things most likely to cause a cross-user data leak if broken. Chec
 - `src/components/ui/TagInput.tsx` — chip UI, comma/enter to add, backspace to remove, integrated in `ConceptForm`
 - `src/components/sidebar/Sidebar.tsx` (search + topic menu) — debounced search to `GET /api/concepts/search?q=`, topic rename/delete via ellipsis context menu with 409 toast
 - `tests/unit/search.test.ts` — `q`/`tag`/`topic` filter tests, all scoped to `user_id`
+- `tests/unit/concept-crud-api.test.ts` — GET/PUT/DELETE `/api/concepts/:id` tests
