@@ -1,3 +1,100 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ─── Color token system ─────────────────────────────────────────────────── */
+
+:root {
+  --bg-primary:      #ffffff;
+  --bg-secondary:    #f8faf6;
+  --bg-tertiary:     #EAF9E7;
+  --bg-accent:       #4CA771;
+
+  --text-primary:    #013237;
+  --text-secondary:  #2a3a30;
+  --text-muted:      #4CA771;
+  --text-on-accent:  #ffffff;
+
+  --border-default:  #C0E6BA;
+  --border-subtle:   #e8ede5;
+
+  --tag-bg:          #EAF9E7;
+  --tag-text:        #4CA771;
+
+  --quote-bg:        #EAF9E7;
+  --quote-border:    #4CA771;
+
+  --danger:          #a44444;
+  --danger-border:   #e8c5c5;
+}
+
+.dark {
+  --bg-primary:      #0f1a24;
+  --bg-secondary:    #0a0f14;
+  --bg-tertiary:     #172531;
+  --bg-accent:       #C7843B;
+
+  --text-primary:    #F3BD68;
+  --text-secondary:  #b0bfcc;
+  --text-muted:      #C7843B;
+  --text-on-accent:  #0a0f14;
+
+  --border-default:  #2C4657;
+  --border-subtle:   #1e2e3d;
+
+  --tag-bg:          #1e2e3d;
+  --tag-text:        #C7843B;
+
+  --quote-bg:        #172531;
+  --quote-border:    #C7843B;
+
+  --danger:          #e07070;
+  --danger-border:   #5a3333;
+}
+
+/* ─── Base element styles ────────────────────────────────────────────────── */
+
+@layer base {
+  body {
+    background-color: var(--bg-secondary);
+    color: var(--text-secondary);
+  }
+
+  /* Writing surfaces — deliberately understimulated */
+  input,
+  textarea,
+  select {
+    background-color: var(--bg-secondary);
+    color: var(--text-secondary);
+    border-color: var(--border-default);
+  }
+
+  input:focus,
+  textarea:focus,
+  select:focus {
+    border-color: var(--bg-accent);
+    outline: none;
+  }
+
+  button {
+    color: var(--text-secondary);
+  }
+
+  a {
+    color: var(--text-primary);
+  }
+
+  table {
+    border-color: var(--border-default);
+  }
+
+  th {
+    color: var(--text-primary);
+    border-color: var(--border-default);
+  }
+
+  td {
+    color: var(--text-secondary);
+    border-color: var(--border-default);
+  }
+}
