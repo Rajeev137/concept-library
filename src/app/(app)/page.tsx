@@ -125,14 +125,14 @@ export default function HomePage() {
 
   const listPanel = (
     <div className="flex flex-col h-full">
-      <div className="flex items-center justify-between px-3 py-2 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
-        <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+      <div className="flex items-center justify-between px-3 py-2 border-b border-[var(--border-default)] flex-shrink-0">
+        <h2 className="text-sm font-semibold text-[var(--text-secondary)]">
           {topicId ? "Topic concepts" : "All concepts"}
         </h2>
         <button
           type="button"
           onClick={handleAddCard}
-          className="text-xs font-medium px-2.5 py-1 rounded-md bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 hover:bg-gray-700 dark:hover:bg-gray-300 transition-colors"
+          className="text-xs font-medium px-2.5 py-1 rounded-md bg-[var(--bg-accent)] text-[var(--text-on-accent)] hover:opacity-90 transition-colors"
         >
           + Add card
         </button>
@@ -179,13 +179,13 @@ export default function HomePage() {
 
     return (
       <div className="flex flex-col items-center justify-center h-full text-center px-6">
-        <p className="text-gray-400 dark:text-gray-500 text-sm">
+        <p className="text-[var(--text-muted)] text-sm">
           Select a concept to view it, or add a new card.
         </p>
         <button
           type="button"
           onClick={handleAddCard}
-          className="mt-4 text-sm font-medium px-4 py-2 rounded-md bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 hover:bg-gray-700 dark:hover:bg-gray-300 transition-colors"
+          className="mt-4 text-sm font-medium px-4 py-2 rounded-md bg-[var(--bg-accent)] text-[var(--text-on-accent)] hover:opacity-90 transition-colors"
         >
           + Add card
         </button>
@@ -200,7 +200,7 @@ export default function HomePage() {
       {/* Desktop: master-detail side by side (lg+) */}
       <div className="hidden lg:flex h-full">
         {/* List: left third */}
-        <div className="w-1/3 border-r border-gray-200 dark:border-gray-700 h-full overflow-hidden flex-shrink-0">
+        <div className="w-1/3 border-r border-[var(--border-default)] h-full overflow-hidden flex-shrink-0">
           {listPanel}
         </div>
         {/* Detail: right two-thirds */}

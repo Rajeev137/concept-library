@@ -19,8 +19,8 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
   if (session) return null;
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-neutral-50 dark:bg-neutral-950">
-      <div className="w-full max-w-sm rounded-lg border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-8 shadow-sm">
+    <main className="min-h-screen flex items-center justify-center bg-[var(--bg-secondary)]">
+      <div className="w-full max-w-sm rounded-lg border border-[var(--border-default)] bg-[var(--bg-primary)] p-8 shadow-sm">
         {children}
       </div>
     </main>

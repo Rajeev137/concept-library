@@ -27,7 +27,7 @@ export default function AddCardButton() {
           type="button"
           aria-label="New concept"
           onClick={() => setOpen(true)}
-          className="flex items-center justify-center w-14 h-14 rounded-full bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 shadow-lg hover:bg-gray-700 dark:hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 dark:focus:ring-gray-100 transition-colors"
+          className="flex items-center justify-center w-14 h-14 rounded-full bg-[var(--bg-accent)] text-[var(--text-on-accent)] shadow-lg hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--bg-accent)] transition-colors"
         >
           <svg
             width="20"
@@ -44,7 +44,7 @@ export default function AddCardButton() {
             />
           </svg>
         </button>
-        <span className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 whitespace-nowrap rounded bg-gray-900 dark:bg-gray-100 px-2 py-1 text-xs text-white dark:text-gray-900 opacity-0 group-hover:opacity-100 transition-opacity">
+        <span className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 whitespace-nowrap rounded bg-[var(--bg-accent)] px-2 py-1 text-xs text-[var(--text-on-accent)] opacity-0 group-hover:opacity-100 transition-opacity">
           New concept
         </span>
       </div>
@@ -58,13 +58,13 @@ export default function AddCardButton() {
         >
           {/* Backdrop */}
           <div
-            className="absolute inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
             onClick={handleCancel}
             aria-hidden="true"
           />
 
           {/* Modal panel */}
-          <div className="relative z-10 mt-8 mb-8 w-full max-w-2xl max-h-[calc(100vh-4rem)] overflow-y-auto rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-xl p-6">
+          <div className="relative z-10 mt-8 mb-8 w-full max-w-2xl max-h-[calc(100vh-4rem)] overflow-y-auto rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] shadow-xl p-6">
             <ConceptForm
               defaultTopicId={topicId}
               onSuccess={handleSuccess}

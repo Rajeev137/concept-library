@@ -46,20 +46,20 @@ export default function TagInput({ value, onChange, placeholder }: TagInputProps
 
   return (
     <div
-      className="flex flex-wrap items-center gap-1.5 w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm bg-white dark:bg-gray-900 focus-within:ring-2 focus-within:ring-blue-300 dark:focus-within:ring-blue-700 transition-colors cursor-text"
+      className="flex flex-wrap items-center gap-1.5 w-full rounded-md border border-[var(--border-default)] px-3 py-2 text-sm bg-[var(--bg-secondary)] focus-within:ring-2 focus-within:ring-[var(--bg-accent)] transition-colors cursor-text"
       onClick={() => inputRef.current?.focus()}
     >
       {value.map((tag, i) => (
         <span
           key={tag}
-          className="inline-flex items-center gap-1 rounded-full bg-gray-100 dark:bg-gray-800 px-2 py-0.5 text-xs font-medium text-gray-700 dark:text-gray-300"
+          className="inline-flex items-center gap-1 rounded-full bg-[var(--tag-bg)] px-2 py-0.5 text-xs font-medium text-[var(--tag-text)]"
         >
           {tag}
           <button
             type="button"
             aria-label={`Remove tag ${tag}`}
             onClick={(e) => { e.stopPropagation(); removeTag(i); }}
-            className="flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
+            className="flex items-center text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
           >
             <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true">
               <path d="M1 1l8 8M9 1L1 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
@@ -74,7 +74,7 @@ export default function TagInput({ value, onChange, placeholder }: TagInputProps
         onChange={handleChange}
         onKeyDown={handleKeyDown}
         placeholder={value.length === 0 ? placeholder : undefined}
-        className="flex-1 min-w-[8rem] bg-transparent text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none"
+        className="flex-1 min-w-[8rem] bg-transparent text-[var(--text-secondary)] placeholder-[var(--text-muted)] focus:outline-none"
       />
     </div>
   );

@@ -28,15 +28,15 @@ export default function ResetPasswordPage() {
   if (done) {
     return (
       <>
-        <h1 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-4">
+        <h1 className="text-lg font-semibold text-[var(--text-primary)] mb-4">
           Check your email
         </h1>
-        <p className="text-sm text-neutral-600 dark:text-neutral-400">
+        <p className="text-sm text-[var(--text-secondary)]">
           If that email exists, we sent a reset link. Check your inbox.
         </p>
         <Link
           href="/login"
-          className="mt-6 block text-sm text-neutral-500 dark:text-neutral-400 hover:underline"
+          className="mt-6 block text-sm text-[var(--text-muted)] hover:underline"
         >
           Back to sign in
         </Link>
@@ -46,13 +46,13 @@ export default function ResetPasswordPage() {
 
   return (
     <>
-      <h1 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-6">
+      <h1 className="text-lg font-semibold text-[var(--text-primary)] mb-6">
         Reset password
       </h1>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <div className="flex flex-col gap-1">
-          <label htmlFor="email" className="text-sm text-neutral-600 dark:text-neutral-400">
+          <label htmlFor="email" className="text-sm text-[var(--text-muted)]">
             Email
           </label>
           <input
@@ -62,20 +62,20 @@ export default function ResetPasswordPage() {
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="rounded border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm text-neutral-900 dark:text-neutral-100 outline-none focus:ring-2 focus:ring-neutral-400"
+            className="rounded border border-[var(--border-default)] bg-[var(--bg-secondary)] px-3 py-2 text-sm text-[var(--text-secondary)] outline-none focus:ring-2 focus:ring-[var(--bg-accent)]"
           />
         </div>
 
         <button
           type="submit"
           disabled={submitting}
-          className="rounded bg-neutral-900 dark:bg-neutral-100 px-4 py-2 text-sm font-medium text-white dark:text-neutral-900 hover:bg-neutral-700 dark:hover:bg-neutral-300 disabled:opacity-50"
+          className="rounded bg-[var(--bg-accent)] px-4 py-2 text-sm font-medium text-[var(--text-on-accent)] hover:opacity-90 disabled:opacity-50"
         >
           {submitting ? "Sending…" : "Send reset link"}
         </button>
       </form>
 
-      <div className="mt-6 text-sm text-neutral-500 dark:text-neutral-400">
+      <div className="mt-6 text-sm text-[var(--text-muted)]">
         <Link href="/login" className="hover:underline">
           Back to sign in
         </Link>
