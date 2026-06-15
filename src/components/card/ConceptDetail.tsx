@@ -315,13 +315,14 @@ export default function ConceptDetail({ conceptId, onEdit, onDelete, onTagClick 
               Diagram
             </button>
             {imageExpanded && (
-              <Image
-                src={concept.image.url}
-                alt={`Diagram for ${concept.title}`}
-                width={concept.image.width}
-                height={concept.image.height}
-                className="w-full rounded-md border border-gray-200 dark:border-gray-700 object-contain"
-              />
+              <div className="relative w-full aspect-video">
+                <Image
+                  src={concept.image.url}
+                  alt={`Diagram for ${concept.title}`}
+                  fill
+                  className="rounded-md border border-gray-200 dark:border-gray-700 object-contain"
+                />
+              </div>
             )}
           </section>
         )}
