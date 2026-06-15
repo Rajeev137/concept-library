@@ -5,6 +5,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import type { Concept, UUID } from "@/types";
 import ConceptForm from "./ConceptForm";
+import { emitConceptDeleted } from "@/lib/events";
 
 interface ConceptDetailProps {
   conceptId: UUID;
@@ -126,6 +127,7 @@ export default function ConceptDetail({ conceptId, onEdit, onDelete, onTagClick 
         return;
       }
       setShowDeleteDialog(false);
+      emitConceptDeleted({ concept_id: concept.id, topic_id: concept.topic_id });
       onDelete();
     } catch {
       setDeleteError("Network error. Please try again.");
