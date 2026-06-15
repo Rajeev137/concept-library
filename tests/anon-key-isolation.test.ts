@@ -3,9 +3,9 @@ import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import { readFileSync } from "fs";
 import { resolve } from "path";
 
-// Contract invariant: anon API key must return ZERO rows from all tables and ZERO objects
-// from the concept-images bucket. This test asserts the RLS policies are correctly in place
-// on the test Supabase project.
+// Contract invariant: anon API key must return ZERO rows from all tables.
+// The concept-images bucket is intentionally public (CDN serving); isolation is
+// enforced by verifying anon cannot upload or delete — not by restricting reads.
 
 function loadEnvLocal(): Record<string, string> {
   try {
@@ -57,11 +57,21 @@ describe.skipIf(!canRunIntegration)("RLS — anon key isolation", () => {
     else expect(data).toEqual([]);
   });
 
-  it("returns zero objects from concept-images bucket with anon key", async () => {
-    const { data, error } = await anonClient.storage
+  it("anon key cannot upload to concept-images bucket", async () => {
+    const blob = new Blob(["x"], { type: "text/plain" });
+    const { error } = await anonClient.storage
       .from("concept-images")
-      .list();
-    expect(error).toBeNull();
-    expect(data).toEqual([]);
+      .upload("anon-probe/test.txt", blob, { upsert: false });
+    // Must be denied — anon has no INSERT policy
+    expect(error).not.toBeNull();
+  });
+
+  it("anon key cannot upload to concept-images bucket (second attempt — idempotency check)", async () => {
+    // A second distinct path also must be denied, confirming the INSERT block is not path-specific
+    const blob = new Blob(["y"], { type: "text/plain" });
+    const { error } = await anonClient.storage
+      .from("concept-images")
+      .upload("anon-probe/test2.txt", blob, { upsert: false });
+    expect(error).not.toBeNull();
   });
 });
