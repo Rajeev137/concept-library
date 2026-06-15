@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import type { Concept, UUID } from "@/types";
@@ -314,7 +315,7 @@ export default function ConceptDetail({ conceptId, onEdit, onDelete, onTagClick 
               Diagram
             </button>
             {imageExpanded && (
-              <img
+              <Image
                 src={concept.image.url}
                 alt={`Diagram for ${concept.title}`}
                 width={concept.image.width}
