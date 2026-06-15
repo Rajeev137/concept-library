@@ -30,7 +30,7 @@ export default function AppShell({ children }: AppShellProps) {
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-950">
+    <div className="flex h-screen overflow-hidden bg-[var(--bg-secondary)]">
       <OfflineBanner />
 
       {isMobile ? (
@@ -53,12 +53,12 @@ export default function AppShell({ children }: AppShellProps) {
 
       <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
         {isMobile && (
-          <header className="flex items-center h-12 px-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 flex-shrink-0">
+          <header className="flex items-center h-12 px-4 border-b border-[var(--border-default)] bg-[var(--bg-primary)] flex-shrink-0">
             <button
               type="button"
               aria-label="Open sidebar"
               onClick={() => setDrawerOpen(true)}
-              className="rounded-md p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+              className="rounded-md p-2 text-[var(--text-muted)] hover:bg-[var(--bg-tertiary)] transition-colors"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -77,7 +77,7 @@ export default function AppShell({ children }: AppShellProps) {
                 <line x1="3" y1="18" x2="21" y2="18" />
               </svg>
             </button>
-            <span className="ml-3 text-sm font-semibold text-gray-700 dark:text-gray-300">
+            <span className="ml-3 text-sm font-semibold text-[var(--text-secondary)]">
               Concept Library
             </span>
           </header>

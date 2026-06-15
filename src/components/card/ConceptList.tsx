@@ -12,7 +12,7 @@ interface ConceptListProps {
 
 function SkeletonRow() {
   return (
-    <div className="h-9 mx-2 my-0.5 rounded-md bg-gray-100 dark:bg-gray-800 animate-pulse" />
+    <div className="h-9 mx-2 my-0.5 rounded-md bg-[var(--bg-tertiary)] animate-pulse" />
   );
 }
 
@@ -74,7 +74,7 @@ export default function ConceptList({ topicId, activeConceptId, onConceptClick }
 
   if (error) {
     return (
-      <section aria-label="Concepts" className="px-3 py-4 text-sm text-red-600 dark:text-red-400">
+      <section aria-label="Concepts" className="px-3 py-4 text-sm text-[var(--danger)]">
         Failed to load concepts.
       </section>
     );
@@ -83,7 +83,7 @@ export default function ConceptList({ topicId, activeConceptId, onConceptClick }
   if (concepts.length === 0) {
     return (
       <section aria-label="Concepts" className="px-3 py-6 text-center">
-        <p className="text-sm text-gray-500 dark:text-gray-400">No concepts yet</p>
+        <p className="text-sm text-[var(--text-muted)]">No concepts yet</p>
       </section>
     );
   }
@@ -105,8 +105,8 @@ export default function ConceptList({ topicId, activeConceptId, onConceptClick }
                 aria-current={isActive ? "true" : undefined}
                 className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors truncate ${
                   isActive
-                    ? "bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300 font-medium"
-                    : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                    ? "bg-[var(--bg-tertiary)] text-[var(--text-primary)] font-medium border-l-2 border-[var(--bg-accent)]"
+                    : "text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)]"
                 }`}
               >
                 {concept.title}

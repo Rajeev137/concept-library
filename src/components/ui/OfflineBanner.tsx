@@ -42,7 +42,7 @@ export default function OfflineBanner() {
     <div
       role="alert"
       aria-live="polite"
-      className="fixed top-0 inset-x-0 z-50 bg-yellow-400 text-yellow-900 text-sm text-center py-2 px-4"
+      className="fixed top-0 inset-x-0 z-50 bg-[var(--bg-accent)] text-[var(--text-on-accent)] text-sm text-center py-2 px-4"
     >
       You are offline — changes will be saved locally
       {hasDraft && (

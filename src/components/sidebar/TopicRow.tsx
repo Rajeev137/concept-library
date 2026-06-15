@@ -76,7 +76,7 @@ export default function TopicRow({
               strokeLinecap="round"
               strokeLinejoin="round"
               aria-hidden="true"
-              className={`flex-shrink-0 text-gray-400 transition-transform ${expanded ? "rotate-90" : ""}`}
+              className={`flex-shrink-0 text-[var(--text-muted)] transition-transform ${expanded ? "rotate-90" : ""}`}
             >
               <polyline points="9 18 15 12 9 6" />
             </svg>
@@ -92,7 +92,7 @@ export default function TopicRow({
               strokeLinecap="round"
               strokeLinejoin="round"
               aria-hidden="true"
-              className="flex-shrink-0 text-gray-400 dark:text-gray-500"
+              className="flex-shrink-0 text-[var(--text-muted)]"
             >
               <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
             </svg>
@@ -105,7 +105,7 @@ export default function TopicRow({
               onBlur={onRenameBlur}
               disabled={renameInProgress}
               aria-label={`Rename topic ${topic.name}`}
-              className="flex-1 min-w-0 text-sm bg-white dark:bg-gray-900 border border-blue-500 rounded px-1.5 py-0.5 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
+              className="flex-1 min-w-0 text-sm bg-[var(--bg-secondary)] border border-[var(--bg-accent)] rounded px-1.5 py-0.5 text-[var(--text-secondary)] focus:outline-none focus:ring-1 focus:ring-[var(--bg-accent)] disabled:opacity-50"
             />
           </div>
         ) : (
@@ -113,8 +113,8 @@ export default function TopicRow({
             type="button"
             onClick={() => onToggle(topic.id)}
             className={`flex-1 flex items-center gap-2 px-3 py-2 text-sm rounded-md text-left
-              hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors
-              ${expanded && !collapsed ? "text-gray-900 dark:text-gray-100" : "text-gray-700 dark:text-gray-300"}`}
+              hover:bg-[var(--bg-tertiary)] transition-colors
+              ${expanded && !collapsed ? "text-[var(--text-primary)]" : "text-[var(--text-secondary)]"}`}
             title={collapsed ? topic.name : undefined}
             aria-label={collapsed ? topic.name : undefined}
           >
@@ -147,7 +147,7 @@ export default function TopicRow({
               strokeLinecap="round"
               strokeLinejoin="round"
               aria-hidden="true"
-              className="flex-shrink-0 text-gray-400 dark:text-gray-500"
+              className="flex-shrink-0 text-[var(--text-muted)]"
             >
               <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
             </svg>
@@ -156,7 +156,7 @@ export default function TopicRow({
               <>
                 <span className="flex-1 truncate font-medium">{topic.name}</span>
                 <span
-                  className="ml-auto flex-shrink-0 text-xs bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-full px-1.5 py-0.5 min-w-[1.25rem] text-center"
+                  className="ml-auto flex-shrink-0 text-xs bg-[var(--bg-tertiary)] text-[var(--text-muted)] rounded-full px-1.5 py-0.5 min-w-[1.25rem] text-center"
                   aria-label={`${topic.concept_count} concepts`}
                 >
                   {topic.concept_count}
@@ -175,7 +175,7 @@ export default function TopicRow({
               aria-label={`Options for ${topic.name}`}
               aria-haspopup="true"
               aria-expanded={menuOpen}
-              className="opacity-0 group-hover:opacity-100 focus:opacity-100 rounded p-1 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all"
+              className="opacity-0 group-hover:opacity-100 focus:opacity-100 rounded p-1 text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] transition-all"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -193,7 +193,7 @@ export default function TopicRow({
 
             {menuOpen && (
               <div
-                className="absolute right-0 top-full mt-1 z-20 w-32 rounded-md shadow-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 py-1"
+                className="absolute right-0 top-full mt-1 z-20 w-32 rounded-md shadow-lg bg-[var(--bg-primary)] border border-[var(--border-default)] py-1"
                 role="menu"
                 aria-label={`Options for ${topic.name}`}
                 data-topic-menu="true"
@@ -202,7 +202,7 @@ export default function TopicRow({
                   type="button"
                   role="menuitem"
                   onClick={() => onRenameStart?.()}
-                  className="w-full text-left px-3 py-1.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  className="w-full text-left px-3 py-1.5 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] transition-colors"
                 >
                   Rename
                 </button>
@@ -210,7 +210,7 @@ export default function TopicRow({
                   type="button"
                   role="menuitem"
                   onClick={() => onDeleteStart?.()}
-                  className="w-full text-left px-3 py-1.5 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  className="w-full text-left px-3 py-1.5 text-sm text-[var(--danger)] hover:bg-[var(--bg-tertiary)] transition-colors"
                 >
                   Delete
                 </button>
@@ -223,11 +223,11 @@ export default function TopicRow({
       {!collapsed && expanded && (
         <ul role="group" className="mt-0.5 mb-1">
           {concepts === undefined ? (
-            <li className="px-9 py-1.5 text-xs text-gray-400 dark:text-gray-500">
+            <li className="px-9 py-1.5 text-xs text-[var(--text-muted)]">
               Loading…
             </li>
           ) : concepts.length === 0 ? (
-            <li className="px-9 py-1.5 text-xs text-gray-400 dark:text-gray-500">
+            <li className="px-9 py-1.5 text-xs text-[var(--text-muted)]">
               No concepts yet
             </li>
           ) : (
@@ -239,8 +239,8 @@ export default function TopicRow({
                   className={`w-full text-left px-9 py-1.5 text-sm rounded-md truncate transition-colors
                     ${
                       concept.id === activeConceptId
-                        ? "bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"
-                        : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100"
+                        ? "bg-[var(--bg-tertiary)] text-[var(--text-primary)] border-l-2 border-[var(--bg-accent)]"
+                        : "text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)]"
                     }`}
                 >
                   {concept.title}

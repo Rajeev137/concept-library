@@ -445,22 +445,22 @@ export default function ConceptForm({ concept, defaultTopicId, onSuccess, onCanc
 
   function fieldClass(name: string) {
     const base =
-      "w-full rounded-md border px-3 py-2 text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 transition-colors";
+      "w-full rounded-md border px-3 py-2 text-sm bg-[var(--bg-secondary)] text-[var(--text-secondary)] placeholder-[var(--text-muted)] focus:outline-none focus:ring-2 transition-colors";
     return fieldErrors[name]
-      ? `${base} border-red-400 dark:border-red-500 focus:ring-red-300 dark:focus:ring-red-700`
-      : `${base} border-gray-300 dark:border-gray-600 focus:ring-blue-300 dark:focus:ring-blue-700`;
+      ? `${base} border-[var(--danger)] focus:ring-[var(--danger-border)]`
+      : `${base} border-[var(--border-default)] focus:ring-[var(--bg-accent)]`;
   }
 
   return (
     <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-5 max-w-2xl w-full mx-auto px-1">
-      <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+      <h2 className="text-lg font-semibold text-[var(--text-primary)]">
         {concept ? "Edit Concept" : "New Concept"}
       </h2>
 
       {/* Topic combobox */}
       <div className="relative flex flex-col gap-1">
-        <label htmlFor="topic-input" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-          Topic <span className="text-red-500">*</span>
+        <label htmlFor="topic-input" className="text-sm font-medium text-[var(--text-muted)]">
+          Topic <span className="text-[var(--danger)]">*</span>
         </label>
         <input
           id="topic-input"
@@ -477,7 +477,7 @@ export default function ConceptForm({ concept, defaultTopicId, onSuccess, onCanc
         {topicDropdownOpen && (filteredTopics.length > 0 || showNewTopicOption) && (
           <ul
             role="listbox"
-            className="absolute top-full left-0 right-0 z-50 mt-1 max-h-48 overflow-y-auto rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-lg"
+            className="absolute top-full left-0 right-0 z-50 mt-1 max-h-48 overflow-y-auto rounded-md border border-[var(--border-default)] bg-[var(--bg-primary)] shadow-lg"
           >
             {filteredTopics.map((t) => (
               <li key={t.id}>
@@ -486,10 +486,10 @@ export default function ConceptForm({ concept, defaultTopicId, onSuccess, onCanc
                   role="option"
                   aria-selected={form.topic_id === t.id}
                   onMouseDown={() => selectExistingTopic(t)}
-                  className="w-full text-left px-3 py-2 text-sm text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                  className="w-full text-left px-3 py-2 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] transition-colors"
                 >
                   {t.name}
-                  <span className="ml-2 text-xs text-gray-400">{t.concept_count}</span>
+                  <span className="ml-2 text-xs text-[var(--text-muted)]">{t.concept_count}</span>
                 </button>
               </li>
             ))}
@@ -500,7 +500,7 @@ export default function ConceptForm({ concept, defaultTopicId, onSuccess, onCanc
                   role="option"
                   aria-selected={false}
                   onMouseDown={() => selectNewTopic(topicQuery)}
-                  className="w-full text-left px-3 py-2 text-sm text-blue-600 dark:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                  className="w-full text-left px-3 py-2 text-sm text-[var(--bg-accent)] hover:bg-[var(--bg-tertiary)] transition-colors"
                 >
                   Create &ldquo;{topicQuery.trim()}&rdquo;
                 </button>
@@ -509,14 +509,14 @@ export default function ConceptForm({ concept, defaultTopicId, onSuccess, onCanc
           </ul>
         )}
         {fieldErrors["topic_id"] && (
-          <p className="text-xs text-red-500">{fieldErrors["topic_id"]}</p>
+          <p className="text-xs text-[var(--danger)]">{fieldErrors["topic_id"]}</p>
         )}
       </div>
 
       {/* Title */}
       <div className="flex flex-col gap-1">
-        <label htmlFor="title" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-          Title <span className="text-red-500">*</span>
+        <label htmlFor="title" className="text-sm font-medium text-[var(--text-muted)]">
+          Title <span className="text-[var(--danger)]">*</span>
         </label>
         <input
           id="title"
@@ -530,14 +530,14 @@ export default function ConceptForm({ concept, defaultTopicId, onSuccess, onCanc
           placeholder="e.g. React useCallback"
         />
         {fieldErrors["title"] && (
-          <p className="text-xs text-red-500">{fieldErrors["title"]}</p>
+          <p className="text-xs text-[var(--danger)]">{fieldErrors["title"]}</p>
         )}
       </div>
 
       {/* What it does */}
       <div className="flex flex-col gap-1">
-        <label htmlFor="what_it_does" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-          What it does <span className="text-red-500">*</span>
+        <label htmlFor="what_it_does" className="text-sm font-medium text-[var(--text-muted)]">
+          What it does <span className="text-[var(--danger)]">*</span>
         </label>
         <textarea
           id="what_it_does"
@@ -551,34 +551,34 @@ export default function ConceptForm({ concept, defaultTopicId, onSuccess, onCanc
           placeholder="Describe what this concept does…"
         />
         {fieldErrors["what_it_does"] && (
-          <p className="text-xs text-red-500">{fieldErrors["what_it_does"]}</p>
+          <p className="text-xs text-[var(--danger)]">{fieldErrors["what_it_does"]}</p>
         )}
       </div>
 
       {/* Comparisons */}
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between">
-          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            Comparisons <span className="text-red-500">*</span>
+          <span className="text-sm font-medium text-[var(--text-muted)]">
+            Comparisons <span className="text-[var(--danger)]">*</span>
           </span>
           <button
             type="button"
             onClick={addComparison}
-            className="text-xs font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
+            className="text-xs font-medium text-[var(--bg-accent)] hover:opacity-80 transition-colors"
           >
             + Add comparison
           </button>
         </div>
         {fieldErrors["comparisons"] && (
-          <p className="text-xs text-red-500">{fieldErrors["comparisons"]}</p>
+          <p className="text-xs text-[var(--danger)]">{fieldErrors["comparisons"]}</p>
         )}
         {comparisons.map((c, i) => (
           <div
             key={i}
-            className="flex flex-col gap-2 rounded-lg border border-gray-200 dark:border-gray-700 p-3 bg-gray-50 dark:bg-gray-800/50"
+            className="flex flex-col gap-2 rounded-lg border border-[var(--border-default)] p-3 bg-[var(--bg-secondary)]"
           >
             <div className="flex items-center justify-between gap-2">
-              <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
+              <span className="text-xs font-medium text-[var(--text-muted)]">
                 Comparison {i + 1}
               </span>
               <div className="flex items-center gap-1">
@@ -587,7 +587,7 @@ export default function ConceptForm({ concept, defaultTopicId, onSuccess, onCanc
                   aria-label="Move up"
                   disabled={i === 0}
                   onClick={() => moveComparison(i, -1)}
-                  className="p-1 rounded text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                  className="p-1 rounded text-[var(--text-muted)] hover:text-[var(--text-secondary)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                 >
                   <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
                     <path d="M6 9V3M3 6l3-3 3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
@@ -598,7 +598,7 @@ export default function ConceptForm({ concept, defaultTopicId, onSuccess, onCanc
                   aria-label="Move down"
                   disabled={i === comparisons.length - 1}
                   onClick={() => moveComparison(i, 1)}
-                  className="p-1 rounded text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                  className="p-1 rounded text-[var(--text-muted)] hover:text-[var(--text-secondary)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                 >
                   <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
                     <path d="M6 3v6M3 6l3 3 3-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
@@ -609,7 +609,7 @@ export default function ConceptForm({ concept, defaultTopicId, onSuccess, onCanc
                   aria-label="Remove comparison"
                   disabled={comparisons.length <= 1}
                   onClick={() => removeComparison(i)}
-                  className="p-1 rounded text-gray-400 hover:text-red-500 dark:hover:text-red-400 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                  className="p-1 rounded text-[var(--text-muted)] hover:text-[var(--danger)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                 >
                   <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
                     <path d="M2 2l8 8M10 2l-8 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
@@ -618,7 +618,7 @@ export default function ConceptForm({ concept, defaultTopicId, onSuccess, onCanc
               </div>
             </div>
             <div className="flex flex-col gap-1">
-              <label className="text-xs text-gray-500 dark:text-gray-400">Alternative</label>
+              <label className="text-xs text-[var(--text-muted)]">Alternative</label>
               <input
                 type="text"
                 value={c.alternative}
@@ -627,11 +627,11 @@ export default function ConceptForm({ concept, defaultTopicId, onSuccess, onCanc
                 className={fieldClass(`comparisons[${i}].alternative`)}
               />
               {fieldErrors[`comparisons[${i}].alternative`] && (
-                <p className="text-xs text-red-500">{fieldErrors[`comparisons[${i}].alternative`]}</p>
+                <p className="text-xs text-[var(--danger)]">{fieldErrors[`comparisons[${i}].alternative`]}</p>
               )}
             </div>
             <div className="flex flex-col gap-1">
-              <label className="text-xs text-gray-500 dark:text-gray-400">Difference</label>
+              <label className="text-xs text-[var(--text-muted)]">Difference</label>
               <textarea
                 rows={2}
                 value={c.difference}
@@ -640,7 +640,7 @@ export default function ConceptForm({ concept, defaultTopicId, onSuccess, onCanc
                 className={fieldClass(`comparisons[${i}].difference`)}
               />
               {fieldErrors[`comparisons[${i}].difference`] && (
-                <p className="text-xs text-red-500">{fieldErrors[`comparisons[${i}].difference`]}</p>
+                <p className="text-xs text-[var(--danger)]">{fieldErrors[`comparisons[${i}].difference`]}</p>
               )}
             </div>
           </div>
@@ -649,8 +649,8 @@ export default function ConceptForm({ concept, defaultTopicId, onSuccess, onCanc
 
       {/* When it breaks */}
       <div className="flex flex-col gap-1">
-        <label htmlFor="when_it_breaks" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-          When it breaks <span className="text-red-500">*</span>
+        <label htmlFor="when_it_breaks" className="text-sm font-medium text-[var(--text-muted)]">
+          When it breaks <span className="text-[var(--danger)]">*</span>
         </label>
         <textarea
           id="when_it_breaks"
@@ -664,14 +664,14 @@ export default function ConceptForm({ concept, defaultTopicId, onSuccess, onCanc
           placeholder="Describe edge cases or failure modes…"
         />
         {fieldErrors["when_it_breaks"] && (
-          <p className="text-xs text-red-500">{fieldErrors["when_it_breaks"]}</p>
+          <p className="text-xs text-[var(--danger)]">{fieldErrors["when_it_breaks"]}</p>
         )}
       </div>
 
       {/* Explain in 30s */}
       <div className="flex flex-col gap-1">
-        <label htmlFor="explain_in_30s" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-          Explain in 30 seconds <span className="text-red-500">*</span>
+        <label htmlFor="explain_in_30s" className="text-sm font-medium text-[var(--text-muted)]">
+          Explain in 30 seconds <span className="text-[var(--danger)]">*</span>
         </label>
         <textarea
           id="explain_in_30s"
@@ -685,14 +685,14 @@ export default function ConceptForm({ concept, defaultTopicId, onSuccess, onCanc
           placeholder="Your elevator-pitch explanation…"
         />
         {fieldErrors["explain_in_30s"] && (
-          <p className="text-xs text-red-500">{fieldErrors["explain_in_30s"]}</p>
+          <p className="text-xs text-[var(--danger)]">{fieldErrors["explain_in_30s"]}</p>
         )}
       </div>
 
       {/* Where I used it */}
       <div className="flex flex-col gap-1">
-        <label htmlFor="where_i_used_it" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-          Where I used it <span className="text-red-500">*</span>
+        <label htmlFor="where_i_used_it" className="text-sm font-medium text-[var(--text-muted)]">
+          Where I used it <span className="text-[var(--danger)]">*</span>
         </label>
         <textarea
           id="where_i_used_it"
@@ -706,13 +706,13 @@ export default function ConceptForm({ concept, defaultTopicId, onSuccess, onCanc
           placeholder="Project or context where you applied this…"
         />
         {fieldErrors["where_i_used_it"] && (
-          <p className="text-xs text-red-500">{fieldErrors["where_i_used_it"]}</p>
+          <p className="text-xs text-[var(--danger)]">{fieldErrors["where_i_used_it"]}</p>
         )}
       </div>
 
       {/* Tags */}
       <div className="flex flex-col gap-1">
-        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+        <label className="text-sm font-medium text-[var(--text-muted)]">
           Tags
         </label>
         <TagInput
@@ -723,11 +723,11 @@ export default function ConceptForm({ concept, defaultTopicId, onSuccess, onCanc
       </div>
 
       {/* Image — collapsible */}
-      <div className="flex flex-col gap-2 rounded-lg border border-gray-200 dark:border-gray-700">
+      <div className="flex flex-col gap-2 rounded-lg border border-[var(--border-default)]">
         <button
           type="button"
           onClick={() => setImageExpanded((v) => !v)}
-          className="flex items-center justify-between w-full px-3 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors rounded-lg"
+          className="flex items-center justify-between w-full px-3 py-2.5 text-sm font-medium text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] transition-colors rounded-lg"
         >
           <span>Image (optional)</span>
           <svg
@@ -745,7 +745,7 @@ export default function ConceptForm({ concept, defaultTopicId, onSuccess, onCanc
           <div className="px-3 pb-3 flex flex-col gap-3">
             {image ? (
               <div className="flex items-start gap-3">
-                <div className="relative h-24 w-32 shrink-0 rounded-md border border-gray-200 dark:border-gray-700 overflow-hidden">
+                <div className="relative h-24 w-32 shrink-0 rounded-md border border-[var(--border-default)] overflow-hidden">
                   <Image
                     src={image.url}
                     alt="Uploaded concept image"
@@ -756,7 +756,7 @@ export default function ConceptForm({ concept, defaultTopicId, onSuccess, onCanc
                 <button
                   type="button"
                   onClick={removeImage}
-                  className="text-xs text-red-500 hover:text-red-700 dark:hover:text-red-400 transition-colors"
+                  className="text-xs text-[var(--danger)] hover:opacity-80 transition-colors"
                 >
                   Remove
                 </button>
@@ -774,27 +774,27 @@ export default function ConceptForm({ concept, defaultTopicId, onSuccess, onCanc
                   onKeyDown={(e) => e.key === "Enter" && fileInputRef.current?.click()}
                   className={`flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed py-8 cursor-pointer transition-colors ${
                     isDragging
-                      ? "border-blue-400 bg-blue-50 dark:bg-blue-900/20"
-                      : "border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500"
+                      ? "border-[var(--bg-accent)] bg-[var(--bg-tertiary)]"
+                      : "border-[var(--border-default)] hover:border-[var(--bg-accent)]"
                   }`}
                 >
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true" className="text-gray-400">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true" className="text-[var(--text-muted)]">
                     <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
-                  <span className="text-sm text-gray-500 dark:text-gray-400">
+                  <span className="text-sm text-[var(--text-muted)]">
                     {uploading ? "Uploading…" : "Drag and drop or click to upload"}
                   </span>
-                  <span className="text-xs text-gray-400">PNG, JPEG, WebP, GIF</span>
+                  <span className="text-xs text-[var(--text-muted)]">PNG, JPEG, WebP, GIF</span>
                 </div>
                 {uploading && uploadProgress !== null && (
                   <div className="flex flex-col gap-1">
-                    <div className="h-1.5 w-full rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
+                    <div className="h-1.5 w-full rounded-full bg-[var(--bg-tertiary)] overflow-hidden">
                       <div
-                        className="h-full rounded-full bg-blue-500 transition-all duration-150"
+                        className="h-full rounded-full bg-[var(--bg-accent)] transition-all duration-150"
                         style={{ width: `${uploadProgress}%` }}
                       />
                     </div>
-                    <p className="text-xs text-gray-400 text-right">{uploadProgress}%</p>
+                    <p className="text-xs text-[var(--text-muted)] text-right">{uploadProgress}%</p>
                   </div>
                 )}
                 <input
@@ -805,7 +805,7 @@ export default function ConceptForm({ concept, defaultTopicId, onSuccess, onCanc
                   onChange={handleFileChange}
                   tabIndex={-1}
                 />
-                {uploadError && <p className="text-xs text-red-500">{uploadError}</p>}
+                {uploadError && <p className="text-xs text-[var(--danger)]">{uploadError}</p>}
               </>
             )}
           </div>
@@ -814,13 +814,13 @@ export default function ConceptForm({ concept, defaultTopicId, onSuccess, onCanc
 
       {/* Submit error / offline notice */}
       {submitError && (
-        <div className="rounded-md border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 px-3 py-2 flex items-center justify-between gap-3">
-          <p className="text-sm text-red-500">{submitError}</p>
+        <div className="rounded-md border border-[var(--danger-border)] bg-[var(--bg-secondary)] px-3 py-2 flex items-center justify-between gap-3">
+          <p className="text-sm text-[var(--danger)]">{submitError}</p>
           {offlineRetry && (
             <button
               type="button"
               onClick={handleRetry}
-              className="shrink-0 text-xs font-medium text-red-600 dark:text-red-400 underline underline-offset-2 hover:text-red-800 dark:hover:text-red-200 transition-colors"
+              className="shrink-0 text-xs font-medium text-[var(--danger)] underline underline-offset-2 hover:opacity-80 transition-colors"
             >
               Retry
             </button>
@@ -833,15 +833,15 @@ export default function ConceptForm({ concept, defaultTopicId, onSuccess, onCanc
         <div
           role="alert"
           aria-live="polite"
-          className="rounded-md border border-yellow-300 dark:border-yellow-700 bg-yellow-50 dark:bg-yellow-900/20 px-3 py-2 flex items-center justify-between gap-3"
+          className="rounded-md border border-[var(--border-default)] bg-[var(--bg-tertiary)] px-3 py-2 flex items-center justify-between gap-3"
         >
-          <p className="text-sm text-yellow-800 dark:text-yellow-300">
+          <p className="text-sm text-[var(--text-secondary)]">
             Back online — tap to retry
           </p>
           <button
             type="button"
             onClick={handleRetry}
-            className="shrink-0 text-xs font-medium text-yellow-800 dark:text-yellow-300 underline underline-offset-2 hover:text-yellow-900 dark:hover:text-yellow-100 transition-colors"
+            className="shrink-0 text-xs font-medium text-[var(--text-primary)] underline underline-offset-2 hover:opacity-80 transition-colors"
           >
             Retry
           </button>
@@ -853,14 +853,14 @@ export default function ConceptForm({ concept, defaultTopicId, onSuccess, onCanc
         <button
           type="button"
           onClick={onCancel}
-          className="px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
+          className="px-4 py-2 text-sm font-medium text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors"
         >
           Cancel
         </button>
         <button
           type="submit"
           disabled={submitting}
-          className="px-4 py-2 text-sm font-medium rounded-md bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 hover:bg-gray-700 dark:hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="px-4 py-2 text-sm font-medium rounded-md bg-[var(--bg-accent)] text-[var(--text-on-accent)] hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           {submitting ? "Saving…" : concept ? "Save changes" : "Add concept"}
         </button>

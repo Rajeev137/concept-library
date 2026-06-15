@@ -60,7 +60,7 @@ function highlightMatch(text: string, query: string): React.ReactNode {
   return (
     <>
       {text.slice(0, idx)}
-      <mark className="bg-yellow-200 dark:bg-yellow-800 text-inherit rounded-sm">{text.slice(idx, idx + query.length)}</mark>
+      <mark className="bg-[var(--bg-tertiary)] text-inherit rounded-sm">{text.slice(idx, idx + query.length)}</mark>
       {text.slice(idx + query.length)}
     </>
   );
@@ -317,9 +317,9 @@ export default function Sidebar({ collapsed, onCollapsedChange, isMobileDrawer, 
   const sidebarContent = (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="flex items-center gap-2 px-3 py-3 border-b border-gray-200 dark:border-gray-700">
+      <div className="flex items-center gap-2 px-3 py-3 border-b border-[var(--border-default)]">
         {!collapsed && (
-          <span className="flex-1 text-sm font-semibold text-gray-700 dark:text-gray-300 truncate">
+          <span className="flex-1 text-sm font-semibold text-[var(--text-secondary)] truncate">
             Topics
           </span>
         )}
@@ -328,7 +328,7 @@ export default function Sidebar({ collapsed, onCollapsedChange, isMobileDrawer, 
           onClick={() => onCollapsedChange(!collapsed)}
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          className="rounded-md p-1.5 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-200 transition-colors flex-shrink-0"
+          className="rounded-md p-1.5 text-[var(--text-muted)] hover:bg-[var(--bg-tertiary)] transition-colors flex-shrink-0"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -352,14 +352,14 @@ export default function Sidebar({ collapsed, onCollapsedChange, isMobileDrawer, 
 
       {/* Search */}
       {!collapsed && (
-        <div className="px-3 py-2 border-b border-gray-200 dark:border-gray-700">
+        <div className="px-3 py-2 border-b border-[var(--border-default)]">
           <input
             type="search"
             placeholder="Search concepts…"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             aria-label="Search concepts"
-            className="w-full text-sm rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 px-3 py-1.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full text-sm rounded-md border border-[var(--border-default)] bg-[var(--bg-secondary)] px-3 py-1.5 text-[var(--text-secondary)] placeholder-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--bg-accent)] focus:border-transparent"
           />
         </div>
       )}
@@ -369,9 +369,9 @@ export default function Sidebar({ collapsed, onCollapsedChange, isMobileDrawer, 
         {!collapsed && isSearchActive ? (
           // Search results view
           searchLoading ? (
-            <div className="px-3 py-4 text-sm text-gray-400 dark:text-gray-500">Searching…</div>
+            <div className="px-3 py-4 text-sm text-[var(--text-muted)]">Searching…</div>
           ) : searchResults.length === 0 ? (
-            <div className="px-3 py-4 text-sm text-gray-400 dark:text-gray-500">No results</div>
+            <div className="px-3 py-4 text-sm text-[var(--text-muted)]">No results</div>
           ) : (
             <ul className="space-y-0.5">
               {searchResults.map(({ concept, topicName }) => (
@@ -382,15 +382,15 @@ export default function Sidebar({ collapsed, onCollapsedChange, isMobileDrawer, 
                     className={`w-full text-left px-3 py-2 text-sm rounded-md transition-colors
                       ${
                         concept.id === activeConceptId
-                          ? "bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"
-                          : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                          ? "bg-[var(--bg-tertiary)] text-[var(--text-primary)] border-l-2 border-[var(--bg-accent)]"
+                          : "text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)]"
                       }`}
                   >
                     <div className="font-medium truncate">
                       {highlightMatch(concept.title, debouncedQuery)}
                     </div>
                     {topicName && (
-                      <div className="text-xs text-gray-400 dark:text-gray-500 truncate mt-0.5">
+                      <div className="text-xs text-[var(--text-muted)] truncate mt-0.5">
                         {topicName}
                       </div>
                     )}
@@ -402,9 +402,9 @@ export default function Sidebar({ collapsed, onCollapsedChange, isMobileDrawer, 
         ) : (
           // Normal topic tree view
           loading ? (
-            <div className="px-3 py-4 text-sm text-gray-400 dark:text-gray-500">Loading…</div>
+            <div className="px-3 py-4 text-sm text-[var(--text-muted)]">Loading…</div>
           ) : topics.length === 0 ? (
-            <div className="px-3 py-4 text-sm text-gray-400 dark:text-gray-500">No topics yet</div>
+            <div className="px-3 py-4 text-sm text-[var(--text-muted)]">No topics yet</div>
           ) : (
             <ul role="tree" aria-label="Topic tree" className="space-y-0.5">
               {topics.map((topic) => (
@@ -435,17 +435,17 @@ export default function Sidebar({ collapsed, onCollapsedChange, isMobileDrawer, 
       </nav>
 
       {/* Footer */}
-      <div className="border-t border-gray-200 dark:border-gray-700 px-3 py-2 flex items-center gap-2">
+      <div className="border-t border-[var(--border-default)] px-3 py-2 flex items-center gap-2">
         <ThemeToggle />
         {!collapsed && session && (
           <>
-            <span className="flex-1 text-xs text-gray-500 dark:text-gray-400 truncate">
+            <span className="flex-1 text-xs text-[var(--text-muted)] truncate">
               {session.email}
             </span>
             <button
               type="button"
               onClick={handleLogout}
-              className="text-xs text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors flex-shrink-0"
+              className="text-xs text-[var(--text-muted)] hover:text-[var(--danger)] transition-colors flex-shrink-0"
               aria-label="Log out"
             >
               Log out
@@ -462,20 +462,20 @@ export default function Sidebar({ collapsed, onCollapsedChange, isMobileDrawer, 
           aria-modal="true"
           aria-labelledby="delete-dialog-title"
         >
-          <div className="bg-white dark:bg-gray-900 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 p-6 w-80 max-w-[90vw]">
-            <h2 id="delete-dialog-title" className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2">
+          <div className="bg-[var(--bg-primary)] rounded-lg shadow-xl border border-[var(--border-default)] p-6 w-80 max-w-[90vw]">
+            <h2 id="delete-dialog-title" className="text-sm font-semibold text-[var(--text-primary)] mb-2">
               Delete &ldquo;{deleteConfirmTopic.name}&rdquo;? It has {deleteConfirmTopic.concept_count} concept{deleteConfirmTopic.concept_count !== 1 ? "s" : ""}.
             </h2>
             {deleteConfirmTopic.concept_count > 0 ? (
               <>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                <p className="text-sm text-[var(--text-secondary)] mb-4">
                   Remove all concepts first.
                 </p>
                 <div className="flex justify-end">
                   <button
                     type="button"
                     onClick={() => setDeleteConfirmTopicId(null)}
-                    className="px-3 py-1.5 text-sm rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                    className="px-3 py-1.5 text-sm rounded-md border border-[var(--border-default)] text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] transition-colors"
                   >
                     OK
                   </button>
@@ -487,7 +487,7 @@ export default function Sidebar({ collapsed, onCollapsedChange, isMobileDrawer, 
                   type="button"
                   onClick={() => setDeleteConfirmTopicId(null)}
                   disabled={deleteInProgress}
-                  className="px-3 py-1.5 text-sm rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
+                  className="px-3 py-1.5 text-sm rounded-md border border-[var(--border-default)] text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] transition-colors disabled:opacity-50"
                 >
                   Cancel
                 </button>
@@ -495,7 +495,7 @@ export default function Sidebar({ collapsed, onCollapsedChange, isMobileDrawer, 
                   type="button"
                   onClick={() => handleDeleteConfirm(deleteConfirmTopicId)}
                   disabled={deleteInProgress}
-                  className="px-3 py-1.5 text-sm rounded-md bg-red-600 text-white hover:bg-red-700 transition-colors disabled:opacity-50"
+                  className="px-3 py-1.5 text-sm rounded-md bg-[var(--danger)] text-[var(--text-on-accent)] hover:opacity-90 transition-colors disabled:opacity-50"
                 >
                   {deleteInProgress ? "Deleting…" : "Delete"}
                 </button>
@@ -512,7 +512,7 @@ export default function Sidebar({ collapsed, onCollapsedChange, isMobileDrawer, 
             key={toast.id}
             role="status"
             aria-live="polite"
-            className="bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-sm px-4 py-2 rounded-md shadow-lg pointer-events-auto"
+            className="bg-[var(--text-primary)] text-[var(--bg-secondary)] text-sm px-4 py-2 rounded-md shadow-lg pointer-events-auto"
           >
             {toast.message}
           </div>
@@ -531,7 +531,7 @@ export default function Sidebar({ collapsed, onCollapsedChange, isMobileDrawer, 
         />
         <aside
           aria-label="Topics"
-          className="fixed inset-y-0 left-0 z-40 w-72 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 shadow-xl translate-x-0 transition-transform duration-200 ease-out"
+          className="fixed inset-y-0 left-0 z-40 w-72 bg-[var(--bg-primary)] border-r border-[var(--border-default)] shadow-xl translate-x-0 transition-transform duration-200 ease-out"
         >
           {sidebarContent}
         </aside>
@@ -542,7 +542,7 @@ export default function Sidebar({ collapsed, onCollapsedChange, isMobileDrawer, 
   return (
     <aside
       aria-label="Topics"
-      className={`flex-shrink-0 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 transition-all duration-200 ${
+      className={`flex-shrink-0 bg-[var(--bg-primary)] border-r border-[var(--border-default)] transition-all duration-200 ${
         collapsed ? "w-14" : "w-64"
       }`}
     >
