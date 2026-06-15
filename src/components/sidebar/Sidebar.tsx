@@ -80,26 +80,31 @@ export default function Sidebar({ collapsed, onCollapsedChange, isMobileDrawer, 
   const [expandedTopicIds, setExpandedTopicIds] = useLocalStorage<UUID[]>("ui:expanded-topics", []);
   const [conceptsCache, setConceptsCache] = useState<Record<UUID, Concept[]>>({});
 
+  const refreshConceptsForTopic = useCallback((topicId: UUID) => {
+    loadingTopics.current.delete(topicId);
+    loadingTopics.current.add(topicId);
+    fetchJson<Concept[]>(`/api/topics/${topicId}/concepts`)
+      .then((concepts) => {
+        setConceptsCache((prev) => ({ ...prev, [topicId]: concepts }));
+      })
+      .catch(() => {
+        setConceptsCache((prev) => ({ ...prev, [topicId]: [] }));
+      })
+      .finally(() => {
+        loadingTopics.current.delete(topicId);
+      });
+  }, []);
+
   const handleConceptSavedEvent = useCallback((topicId: UUID) => {
     reloadTopics();
     setExpandedTopicIds((prev) => prev.includes(topicId) ? prev : [...prev, topicId]);
-    loadingTopics.current.delete(topicId);
-    setConceptsCache((prev) => {
-      const next = { ...prev };
-      delete next[topicId];
-      return next;
-    });
-  }, [reloadTopics, setExpandedTopicIds]);
+    refreshConceptsForTopic(topicId);
+  }, [reloadTopics, setExpandedTopicIds, refreshConceptsForTopic]);
 
   const handleConceptDeletedEvent = useCallback((topicId: UUID) => {
     reloadTopics();
-    loadingTopics.current.delete(topicId);
-    setConceptsCache((prev) => {
-      const next = { ...prev };
-      delete next[topicId];
-      return next;
-    });
-  }, [reloadTopics]);
+    refreshConceptsForTopic(topicId);
+  }, [reloadTopics, refreshConceptsForTopic]);
 
   useEventRefresh({
     onConceptSaved: handleConceptSavedEvent,
@@ -191,10 +196,9 @@ export default function Sidebar({ collapsed, onCollapsedChange, isMobileDrawer, 
 
   useEffect(() => {
     expandedTopicIds.forEach((id) => loadConceptsForTopic(id));
-  // conceptsCache is included so that clearing a cache entry (on save/delete) triggers
-  // a re-fetch; loadConceptsForTopic's own guard prevents infinite loops.
+  // intentionally run only when expandedTopicIds changes, not loadConceptsForTopic
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [expandedTopicIds, conceptsCache]);
+  }, [expandedTopicIds]);
 
   const handleConceptClick = useCallback((topicId: UUID, conceptId: UUID) => {
     router.push(`?topic=${topicId}&concept=${conceptId}`);
