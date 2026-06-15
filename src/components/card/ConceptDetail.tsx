@@ -186,7 +186,7 @@ export default function ConceptDetail({ conceptId, onEdit, onDelete, onTagClick 
           <div className="flex items-center gap-2 flex-shrink-0">
             <button
               type="button"
-              onClick={onEdit}
+              onClick={() => setEditing(true)}
               className="px-3 py-1.5 text-sm rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
             >
               Edit
