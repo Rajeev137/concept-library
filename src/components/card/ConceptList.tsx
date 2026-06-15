@@ -2,20 +2,12 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import type { Concept } from "@/types";
+import { useConceptEventRefresh } from "@/hooks/useEventRefresh";
 
 interface ConceptListProps {
   topicId?: string;
   activeConceptId?: string;
   onConceptClick: (id: string) => void;
-}
-
-async function fetchConcepts(topicId?: string): Promise<Concept[]> {
-  const url = topicId ? `/api/topics/${topicId}/concepts` : "/api/concepts";
-  const res = await fetch(url);
-  if (res.status === 401) throw Object.assign(new Error("Unauthenticated"), { status: 401 });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  const body = await res.json();
-  return body.data as Concept[];
 }
 
 function SkeletonRow() {
@@ -32,14 +24,19 @@ export default function ConceptList({ topicId, activeConceptId, onConceptClick }
   const scrollRef = useRef<HTMLUListElement>(null);
   const storageKey = `scroll:topic:${topicId ?? "all"}`;
 
-  useEffect(() => {
+  const load = useCallback(() => {
+    const url = topicId ? `/api/topics/${topicId}/concepts` : "/api/concepts";
     let cancelled = false;
     setLoading(true);
     setError(null);
-
-    fetchConcepts(topicId)
-      .then((data) => {
-        if (!cancelled) setConcepts(data);
+    fetch(url)
+      .then((res) => {
+        if (res.status === 401) throw Object.assign(new Error("Unauthenticated"), { status: 401 });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
+      .then((body) => {
+        if (!cancelled) setConcepts(body.data as Concept[]);
       })
       .catch((err: Error) => {
         if (!cancelled) setError(err);
@@ -47,9 +44,12 @@ export default function ConceptList({ topicId, activeConceptId, onConceptClick }
       .finally(() => {
         if (!cancelled) setLoading(false);
       });
-
     return () => { cancelled = true; };
   }, [topicId]);
+
+  useEffect(() => load(), [load]);
+
+  useConceptEventRefresh(load);
 
   useEffect(() => {
     if (!loading && scrollRef.current) {
